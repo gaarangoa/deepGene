@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: deepGene
+Version: 1.0.0
+Summary: This program predicts the gene expression level of a sequence
+Home-page: https://github.com/gaarangoa/deepGene
+Author: Gustavo Arango
+Author-email: gustavo1@vt.edu
+License: MIT
+Description-Content-Type: UNKNOWN
+Description: ## DEEPGene 
+        Design gene sequences to optimize expression using deep learning
+        
+        
+Keywords: gene expression cancer genomics
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Build Tools
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
