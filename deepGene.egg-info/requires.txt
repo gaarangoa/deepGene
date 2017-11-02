@@ -1,9 +1,0 @@
-tensorflow
-theano
-keras
-
-[dev]
-check-manifest
-
-[test]
-coverage

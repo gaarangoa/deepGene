@@ -1,2 +1,5 @@
 ./models/
 ./data/
+./deepGene.egg-info/
+./dist/
+./build/
