@@ -1,3 +1,3 @@
 ## DEEPGene 
-Design gene expression optimization using deep learning
+Design gene sequences to optimize expression using deep learning
 
