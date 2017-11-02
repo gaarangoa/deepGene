@@ -1,6 +1,8 @@
 README.md
 setup.cfg
 setup.py
+deepGene/__init__.py
+deepGene/motif2json.py
 deepGene.egg-info/PKG-INFO
 deepGene.egg-info/SOURCES.txt
 deepGene.egg-info/dependency_links.txt

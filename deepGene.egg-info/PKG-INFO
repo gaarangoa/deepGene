@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: deepGene
-Version: 1.0.0
+Version: 1.0.2
 Summary: This program predicts the gene expression level of a sequence
 Home-page: https://github.com/gaarangoa/deepGene
 Author: Gustavo Arango
@@ -11,6 +11,11 @@ Description: ## DEEPGene
         Design gene sequences to optimize expression using deep learning
         
         
+        
+        1. python setup.py sdist
+        2. python setup.py bdist_wheel --universal
+        
+        3. twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 Keywords: gene expression cancer genomics
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
