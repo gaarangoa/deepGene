@@ -77,7 +77,9 @@ setup(
     install_requires=[
         'tensorflow',
         'theano',
-        'keras'
+        'keras',
+        'sklearn',
+        'h5py'
     ],
 
     # List additional groups of dependencies here (e.g. development
@@ -107,7 +109,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'motif2json=deepGene.motif2json:main',
+            'deepGene=deepGene.deepGene:main',
         ],
     },
 )

@@ -1,0 +1,13 @@
+README.md
+setup.cfg
+setup.py
+deepGene/__init__.py
+deepGene/deepGene.py
+deepGene/mergerFeatures.py
+deepGene/motif2json.py
+deepGene.egg-info/PKG-INFO
+deepGene.egg-info/SOURCES.txt
+deepGene.egg-info/dependency_links.txt
+deepGene.egg-info/entry_points.txt
+deepGene.egg-info/requires.txt
+deepGene.egg-info/top_level.txt

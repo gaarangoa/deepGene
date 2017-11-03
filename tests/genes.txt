@@ -1,0 +1,4 @@
+AC027682.2  label1
+AL445072.1  label1
+AC016868.1  label2
+ATN1    label3
