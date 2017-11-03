@@ -18,9 +18,10 @@ class DLModel():
     
     def loadDataset(self):
         self.f = h5py.File(self.dataset, 'r')
+        self.min_max_scaler = preprocessing.MinMaxScaler()
         self.YEncoder = preprocessing.LabelEncoder()
         self.YEncoder.fit( [ i for i in self.f['dataset/Y'] ] )
-        self.X = np.array( [ i for i in self.f['dataset/X'] ] )
+        self.X = self.min_max_scaler.fit_transform( np.array( [ i for i in self.f['dataset/X'] ] ) )
         self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
         self.Y = np_utils.to_categorical( self.EncodedY )
         self.F = [ i for i in self.f['dataset/F'] ]
