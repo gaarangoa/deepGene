@@ -1,0 +1,11 @@
+tensorflow
+theano
+keras
+sklearn
+h5py
+
+[dev]
+check-manifest
+
+[test]
+coverage
