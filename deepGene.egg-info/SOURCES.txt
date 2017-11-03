@@ -5,6 +5,7 @@ deepGene/__init__.py
 deepGene/deepGene.py
 deepGene/mergerFeatures.py
 deepGene/motif2json.py
+deepGene/train.py
 deepGene.egg-info/PKG-INFO
 deepGene.egg-info/SOURCES.txt
 deepGene.egg-info/dependency_links.txt

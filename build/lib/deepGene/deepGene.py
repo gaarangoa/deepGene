@@ -3,12 +3,16 @@ import argparse
 import json
 from motif2json import main as motifToJsonMain
 from mergerFeatures import main as mergeFeatures
+from train import main as trainModel
 
 def motif2json(args):
     motifToJsonMain(args.input, args.output)
 
 def merger(args):
     mergeFeatures(args)
+
+def train(args):
+    trainModel(args)
 
 def main():
     parser = argparse.ArgumentParser(prog="deepGene", description="welcome to the amazing deepGene software")
@@ -29,6 +33,17 @@ def main():
     mergerParser.set_defaults(func=merger)
 
     # training module
+    mergerParser = subparsers.add_parser('train', help="merge different sets of features")
+    mergerParser.add_argument('--dataset', help='dataset containing the features and labels', required=True)
+    mergerParser.add_argument('--model', help='output directory where to write the model', required=True)
+    mergerParser.add_argument('--test', help='the fraction of the dataset to be used for validation 0.33', required=True)
+    mergerParser.add_argument('--epochs', help='number of epochs the deep learning has to run', required=True)
+    mergerParser.add_argument('--batch_size', help='batch size of the dl', required=True)
+    # mergerParser.add_argument('--validation', nargs='+', help='setup a crossvalidation')
+    # mergerParser.add_argument('--fullmodel', nargs='+', help='build a production model with the whole dataset [no crossvalidation]')
+    mergerParser.set_defaults(func=train)
+
+    # parser input files
     args = parser.parse_args()
     args.func(args)
 
