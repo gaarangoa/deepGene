@@ -29,18 +29,18 @@ class DLModel():
     def createModel(self):
         self.nLabels = self.YEncoder.classes_
         self.model = Sequential()
-        self.model.add( Dense(units = 5000, input_dim = len(self.F)) )
+        self.model.add( Dense(units=5000, input_dim=len(self.F)) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        self.model.add( Dense(units = 2000) )
+        self.model.add( Dense(units=2000) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        self.model.add( Dense(units = 1000) )
+        self.model.add( Dense(units=1000) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        self.model.add( Dense(units = 200) )
+        self.model.add( Dense(units=200) )
         self.model.add( Activation('relu') )
-        self.model.add( Dense(units = len(self.nLabels)) )
+        self.model.add( Dense(units=len(self.nLabels)) )
         self.model.add( Activation('softmax') )
 
         print( self.model.summary() )
@@ -66,7 +66,7 @@ class DLModel():
 
     def testModel(self):
         score = self.model.evaluate(self.x_test, self.y_test, batch_size=self.batch_size)
-        print score
+        print(score)
     
 def main(args):
     # create the object model
