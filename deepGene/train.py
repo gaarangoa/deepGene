@@ -62,11 +62,16 @@ class DLModel():
             self.y_train,
             epochs = self.epochs,
             batch_size = self.batch_size,
+            verbose = 1,
+            validation_split=0.33
         )
 
     def testModel(self):
         score = self.model.evaluate(self.x_test, self.y_test, batch_size=self.batch_size)
         print(score)
+    
+    def saveModel(self):
+        self.model.save(self.saveDir+"model.hdf5")
     
 def main(args):
     # create the object model
@@ -83,3 +88,6 @@ def main(args):
 
     # test deep L model
     ML.testModel()
+
+    # save model
+    ML.saveModel()
