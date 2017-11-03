@@ -13,8 +13,13 @@ def main(args):
     geneLabels = {i.split()[0]:i.split()[1] for i in open(args.genes)}
 
     for file in args.features:
+        
         data = json.load(open(file))
         for ix,gene in enumerate(data):
+            
+            print 'processing file: '+file+'['+str(100*float(ix)/len(data))+'%]'
+            sys.stdout.flush()
+
             geneId = gene['gene_id']
             try:
                 assert(selectedGenes[geneId])
