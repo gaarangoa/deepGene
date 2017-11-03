@@ -65,6 +65,7 @@ class DLModel():
 
     def testModel(self):
         score = self.model.evaluate(self.x_test, self.y_test, batch_size=self.batch_size)
+        print score
     
 def main(args):
     # create the object model
