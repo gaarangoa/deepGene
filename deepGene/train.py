@@ -11,9 +11,18 @@ class DLModel():
         self.args = args
         self.dataset = args.dataset
         self.modelName = args.model
-        self.epochs = args.epochs
-        self.testFraction = args.test
-        self.batch_size = args.batch_size
+        try:
+            self.epochs = args.epochs
+        except:
+            self.epochs = 100
+        try:
+            self.testFraction = args.test
+        except:
+            self.testFraction = 0.3
+        try:
+            self.batch_size = args.batch_size
+        except:
+            self.batch_size = 64
         # self.validation = args.validation
         # self.fullModel = args.fullmodel
     
