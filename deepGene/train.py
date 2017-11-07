@@ -1,4 +1,4 @@
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Activation, Dropout
 import h5py
 from sklearn.model_selection import train_test_split
@@ -8,8 +8,9 @@ from keras.utils import np_utils
 
 class DLModel():
     def __init__(self, args):
+        self.args = args
         self.dataset = args.dataset
-        self.saveDir = args.model
+        self.modelName = args.model
         self.epochs = args.epochs
         self.testFraction = args.test
         self.batch_size = args.batch_size
@@ -25,6 +26,9 @@ class DLModel():
         self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
         self.Y = np_utils.to_categorical( self.EncodedY )
         self.F = [ i for i in self.f['dataset/F'] ]
+
+    def loadModel(self):
+        self.model = load_model(self.modelName)
 
     def createModel(self):
         self.nLabels = self.YEncoder.classes_
@@ -63,7 +67,7 @@ class DLModel():
             epochs = self.epochs,
             batch_size = self.batch_size,
             verbose = 1,
-            validation_split=0.33
+            validation_split=0.3
         )
 
     def testModel(self):
@@ -71,8 +75,15 @@ class DLModel():
         print(score)
     
     def saveModel(self):
-        self.model.save(self.saveDir+"model.hdf5")
+        self.model.save(self.modelName)
     
+    def modelWeights(self):
+        self.w0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
+        fo = open(self.args.weightsFile,'w')
+        for ix,i in enumerate(self.w0):
+            fo.write( "\t".join([i,self.F[ix]])+"\n" )
+        
+
 def main(args):
     # create the object model
     ML = DLModel(args)
@@ -91,3 +102,9 @@ def main(args):
 
     # save model
     ML.saveModel()
+
+def weights(args):
+    ML = DLModel(args)
+    ML.loadDataset()
+    ML.loadModel()
+    ML.modelWeights()

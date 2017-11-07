@@ -4,6 +4,7 @@ import json
 from motif2json import main as motifToJsonMain
 from mergerFeatures import main as mergeFeatures
 from train import main as trainModel
+from train import weights
 
 def motif2json(args):
     motifToJsonMain(args.input, args.output)
@@ -13,6 +14,9 @@ def merger(args):
 
 def train(args):
     trainModel(args)
+
+def featureWeights(args):
+    weights(args)
 
 def main():
     parser = argparse.ArgumentParser(prog="deepGene", description="welcome to the amazing deepGene software")
@@ -42,6 +46,13 @@ def main():
     # mergerParser.add_argument('--validation', nargs='+', help='setup a crossvalidation')
     # mergerParser.add_argument('--fullmodel', nargs='+', help='build a production model with the whole dataset [no crossvalidation]')
     mergerParser.set_defaults(func=train)
+
+    # get weights for the feature vector
+    wParser = subparsers.add_parser('weights', help="get the max weigths of each feature in the first layer")
+    wParser.add_argument('--dataset', help='dataset containing the features and labels', required=True)
+    wParser.add_argument('--model', help='model input file', required=True)
+    wParser.add_argument('--weights', help='output file where to write the weights', required=True)
+    wParser.set_defaults(func=featureWeights)
 
     # parser input files
     args = parser.parse_args()
