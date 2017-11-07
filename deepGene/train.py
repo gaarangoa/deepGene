@@ -88,7 +88,7 @@ class DLModel():
     
     def modelWeights(self):
         self.w0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
-        fo = open(self.args.weightsFile,'w')
+        fo = open(self.args.weights,'w')
         for ix,i in enumerate(self.w0):
             fo.write( "\t".join([i,self.F[ix]])+"\n" )
         
