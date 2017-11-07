@@ -114,6 +114,12 @@ def main(args):
 
 def weights(args):
     ML = DLModel(args)
+    
+    print('loading dataset ...')
     ML.loadDataset()
+
+    print('loading model ...')
     ML.loadModel()
+
+    print('retrieving weights ...')
     ML.modelWeights()
