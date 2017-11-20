@@ -89,8 +89,8 @@ class DLModel():
         print( self.model.summary() )
 
         self.model.compile(
-            loss = "mean_squared_error",
-            optimizer = "adam",
+            loss = "mean_absolute_error",
+            optimizer = "rmsprop",
             metrics = ["accuracy"]
         )
         return self.model
