@@ -26,14 +26,18 @@ class DLModel():
         # self.validation = args.validation
         # self.fullModel = args.fullmodel
     
-    def loadDataset(self):
+    def loadDataset(self, r=False):
         self.f = h5py.File(self.dataset, 'r')
         self.min_max_scaler = preprocessing.MinMaxScaler()
-        self.YEncoder = preprocessing.LabelEncoder()
-        self.YEncoder.fit( [ i for i in self.f['dataset/Y'] ] )
+        if r:
+            self.Y = np.array( [float(i for i in self.f['dataset/Y'])] )
+        else:
+            self.YEncoder = preprocessing.LabelEncoder()
+            self.YEncoder.fit( [ i for i in self.f['dataset/Y'] ] )
+            self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
+            self.Y = np_utils.to_categorical( self.EncodedY )
+
         self.X = self.min_max_scaler.fit_transform( np.array( [ i for i in self.f['dataset/X'] ] ) )
-        self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
-        self.Y = np_utils.to_categorical( self.EncodedY )
         self.F = [ i for i in self.f['dataset/F'] ]
 
     def loadModel(self):
@@ -154,7 +158,7 @@ def regression(args):
     ML = DLModel(args)
 
     # load the dataset
-    ML.loadDataset()
+    ML.loadDataset(r=True)
 
     # create the deepLearning model
     ML.createRegressionModel()
