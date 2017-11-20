@@ -72,24 +72,24 @@ class DLModel():
         print("number of features: ", len(self.F))
         self.nLabels = 1
         self.model = Sequential()
-        self.model.add( Dense(units=500, input_dim=len(self.F)) )
-        self.model.add( Activation('linear') )
+        self.model.add( Dense(units=1000, input_dim=len(self.F)) )
+        self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        # self.model.add( Dense(units=500) )
-        # self.model.add( Activation('relu') )
-        # self.model.add( Dropout(0.5) )
-        # self.model.add( Dense(units=100) )
-        # self.model.add( Activation('relu') )
-        # self.model.add( Dropout(0.5) )
-        # self.model.add( Dense(units=50) )
-        # self.model.add( Activation('relu') )
+        self.model.add( Dense(units=500) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dropout(0.5) )
+        self.model.add( Dense(units=100) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dropout(0.5) )
+        self.model.add( Dense(units=50) )
+        self.model.add( Activation('relu') )
         self.model.add( Dense(units=1) )
         self.model.add( Activation('linear') )
 
         print( self.model.summary() )
 
         self.model.compile(
-            loss = "mean_absolute_error",
+            loss = "mean_squared_error",
             optimizer = "rmsprop",
             metrics = ["accuracy"]
         )
