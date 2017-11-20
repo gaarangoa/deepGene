@@ -90,7 +90,7 @@ class DLModel():
 
         self.model.compile(
             loss = "mean_absolute_error",
-            optimizer = "mse",
+            optimizer = "rmsprop",
             metrics = ["accuracy"]
         )
         return self.model
