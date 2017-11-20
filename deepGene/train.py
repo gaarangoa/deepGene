@@ -69,7 +69,7 @@ class DLModel():
         )
     
     def createRegressionModel(self):
-        self.nLabels = self.YEncoder.classes_
+        self.nLabels = 1
         self.model = Sequential()
         self.model.add( Dense(units=1000, input_dim=len(self.F)) )
         self.model.add( Activation('relu') )
