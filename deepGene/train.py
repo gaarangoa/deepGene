@@ -30,7 +30,7 @@ class DLModel():
         self.f = h5py.File(self.dataset, 'r')
         self.min_max_scaler = preprocessing.MinMaxScaler()
         if r:
-            self.Y = self.min_max_scaler.fit_transform( np.array( [float(i) for i in self.f['dataset/Y']] ) )
+            self.Y = self.min_max_scaler.fit_transform( np.array( [float(i) for i in self.f['dataset/Y']] ).reshape(-1, 1) )
         else:
             self.YEncoder = preprocessing.LabelEncoder()
             self.YEncoder.fit( [ i for i in self.f['dataset/Y'] ] )
