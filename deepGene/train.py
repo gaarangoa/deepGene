@@ -64,6 +64,31 @@ class DLModel():
             metrics = ["accuracy"]
         )
     
+    def createRegressionModel(self):
+        self.nLabels = self.YEncoder.classes_
+        self.model = Sequential()
+        self.model.add( Dense(units=1000, input_dim=len(self.F)) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dropout(0.5) )
+        self.model.add( Dense(units=500) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dropout(0.5) )
+        self.model.add( Dense(units=100) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dropout(0.5) )
+        self.model.add( Dense(units=50) )
+        self.model.add( Activation('relu') )
+        self.model.add( Dense(units=1, kernel_initializer='normal') )
+
+        print( self.model.summary() )
+
+        self.model.compile(
+            loss = "mean_squared_error",
+            optimizer = "adam",
+            metrics = ["accuracy"]
+        )
+        return self.model
+
     def trainModel(self):
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(
             self.X, 
@@ -87,9 +112,10 @@ class DLModel():
         self.model.save(self.modelName)
     
     def modelWeights(self):
-        self.w0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
+        w0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
+        b0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
         fo = open(self.args.weights,'w')
-        for ix,i in enumerate(self.w0):
+        for ix,i in enumerate(w0):
             fo.write( "\t".join([str(i),str(self.F[ix])])+"\n" )
         
 
@@ -123,3 +149,21 @@ def weights(args):
 
     print('retrieving weights ...')
     ML.modelWeights()
+
+def regression(args):
+    ML = DLModel(args)
+
+    # load the dataset
+    ML.loadDataset()
+
+    # create the deepLearning model
+    ML.createRegressionModel()
+
+    # train the deep learning model
+    ML.trainModel()
+
+    # test deep L model
+    ML.testModel()
+
+    # save model
+    ML.saveModel()

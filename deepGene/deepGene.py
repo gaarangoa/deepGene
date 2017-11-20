@@ -5,6 +5,7 @@ from motif2json import main as motifToJsonMain
 from mergerFeatures import main as mergeFeatures
 from train import main as trainModel
 from train import weights
+from train import regression as trainRegression
 
 def motif2json(args):
     motifToJsonMain(args.input, args.output)
@@ -17,6 +18,9 @@ def train(args):
 
 def featureWeights(args):
     weights(args)
+
+def regression(args):
+    trainRegression(args)
 
 def main():
     parser = argparse.ArgumentParser(prog="deepGene", description="welcome to the amazing deepGene software")
@@ -53,6 +57,15 @@ def main():
     wParser.add_argument('--model', help='model input file', required=True)
     wParser.add_argument('--weights', help='output file where to write the weights', required=True)
     wParser.set_defaults(func=featureWeights)
+
+    # training module
+    regParser = subparsers.add_parser('regression', help="train a regression model")
+    regParser.add_argument('--dataset', help='dataset containing the features and labels', required=True)
+    regParser.add_argument('--model', help='output directory where to write the model', required=True)
+    regParser.add_argument('--test', help='the fraction of the dataset to be used for validation 0.33', required=True, type=float)
+    regParser.add_argument('--epochs', help='number of epochs the deep learning has to run', required=True, type=int)
+    regParser.add_argument('--batch_size', help='batch size of the dl', required=True, type=int)
+    regParser.set_defaults(func=regression)
 
     # parser input files
     args = parser.parse_args()
