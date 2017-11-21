@@ -40,7 +40,7 @@ class DLModel():
         clf = ExtraTreesClassifier()
         clf = clf.fit(self.X, self.Y)
         rfModel = SelectFromModel(clf, prefit=True)
-        self.X = model.transform(self.X)
+        self.X = rfModel.transform(self.X)
 
         # build the Y labels (numerical values for regression or categorical for classification)
         if r:
@@ -142,22 +142,22 @@ class DLModel():
         
 
 def main(args):
-    # create the object model
+    print("create the object model")
     ML = DLModel(args)
 
-    # load the dataset
+    print("load the dataset")
     ML.loadDataset()
 
-    # create the deepLearning model
+    print("create the deepLearning model")
     ML.createModel()
 
-    # train the deep learning model
+    print("train the deep learning model")
     ML.trainModel()
 
-    # test deep L model
+    print("test deep L model")
     ML.testModel()
 
-    # save model
+    print("save model")
     ML.saveModel()
 
 def weights(args):
