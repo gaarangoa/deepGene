@@ -54,14 +54,13 @@ class DLModel():
 
         
 
-        
-
     def loadModel(self):
         self.model = load_model(self.modelName)
 
     def createModel(self):
         print("number of features: ", len(self.F))
         print("number of selected features: ", self.X.shape[1])
+        print("Input dataset: ", self.X.shape)
         self.nLabels = self.YEncoder.classes_
         self.model = Sequential()
         self.model.add( Dense(units=1000, input_dim=self.X.shape[1]) )
