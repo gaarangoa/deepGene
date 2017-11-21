@@ -6,6 +6,9 @@ from sklearn import preprocessing
 import numpy as np
 from keras.utils import np_utils
 
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.feature_selection import SelectFromModel
+
 class DLModel():
     def __init__(self, args):
         self.args = args
@@ -29,16 +32,27 @@ class DLModel():
     def loadDataset(self, r=False):
         self.f = h5py.File(self.dataset, 'r')
         self.min_max_scaler = preprocessing.MinMaxScaler()
+        self.X = self.min_max_scaler.fit_transform( np.array( [ i for i in self.f['dataset/X'] ] ) )
+        self.F = [ i for i in self.f['dataset/F'] ]
+        self.Y = [ i for i in self.f['dataset/Y'] ]
+
+        clf = ExtraTreesClassifier()
+        clf = clf.fit(self.X, self.Y)
+        rfModel = SelectFromModel(clf, prefit=True)
+        self.X = model.transform(self.X)
+
         if r:
+            
             self.Y = self.min_max_scaler.fit_transform( np.array( [float(i) for i in self.f['dataset/Y']] ).reshape(-1, 1) )
         else:
             self.YEncoder = preprocessing.LabelEncoder()
-            self.YEncoder.fit( [ i for i in self.f['dataset/Y'] ] )
+            self.YEncoder.fit( self.Y )
             self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
             self.Y = np_utils.to_categorical( self.EncodedY )
 
-        self.X = self.min_max_scaler.fit_transform( np.array( [ i for i in self.f['dataset/X'] ] ) )
-        self.F = [ i for i in self.f['dataset/F'] ]
+        
+
+        
 
     def loadModel(self):
         self.model = load_model(self.modelName)

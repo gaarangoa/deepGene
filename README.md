@@ -20,3 +20,20 @@ into a json file
 <!-- 2. python setup.py bdist_wheel --universal -->
 
 <!-- 3. twine upload --repository-url https://test.pypi.org/legacy/ dist/* -->
+
+
+## To run in cluster
+
+module load gcc/5.2.0 intel/15.3 mkl pycuda theano/0.8.2
+
+
+### request to the server
+
+#!/bin/bash
+#SBATCH -J gene_design
+#SBATCH -p normal_q
+#SBATCH -N 10  # this will not assign the node exclusively. See the note above for details
+#SBATCH -t 10:00
+#SBATCH --mem=500G
+#SBATCH --gres=gpu:pascal:1
+echo "hello world"
