@@ -35,16 +35,16 @@ class DLModel():
         self.X = self.min_max_scaler.fit_transform( np.array( [ i for i in self.f['dataset/X'] ] ) )
         self.F = [ i for i in self.f['dataset/F'] ]
         self.Y = [ i for i in self.f['dataset/Y'] ]
-
-        # Extract features using random forest
+        
+        print("Extract features using random forest")
         clf = ExtraTreesClassifier()
         clf = clf.fit(self.X, self.Y)
         rfModel = SelectFromModel(clf, prefit=True)
         self.X = rfModel.transform(self.X)
 
-        # build the Y labels (numerical values for regression or categorical for classification)
+        print("build the Y labels (numerical values for regression or categorical for classification")
+
         if r:
-            
             self.Y = self.min_max_scaler.fit_transform( np.array( [float(i) for i in self.f['dataset/Y']] ).reshape(-1, 1) )
         else:
             self.YEncoder = preprocessing.LabelEncoder()
@@ -62,7 +62,7 @@ class DLModel():
     def createModel(self):
         self.nLabels = self.YEncoder.classes_
         self.model = Sequential()
-        self.model.add( Dense(units=1000, input_dim=len(self.F)) )
+        self.model.add( Dense(units=1000, input_dim=self.X.shape[1]) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
         self.model.add( Dense(units=500) )
