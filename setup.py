@@ -76,9 +76,9 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         # 'tensorflow',
-        'theano',
-        'keras',
-        'sklearn',
+        # 'theano',
+        # 'keras',
+        # 'sklearn',
         'h5py'
     ],
 
