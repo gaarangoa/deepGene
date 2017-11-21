@@ -36,11 +36,13 @@ class DLModel():
         self.F = [ i for i in self.f['dataset/F'] ]
         self.Y = [ i for i in self.f['dataset/Y'] ]
 
+        # Extract features using random forest
         clf = ExtraTreesClassifier()
         clf = clf.fit(self.X, self.Y)
         rfModel = SelectFromModel(clf, prefit=True)
         self.X = model.transform(self.X)
 
+        # build the Y labels (numerical values for regression or categorical for classification)
         if r:
             
             self.Y = self.min_max_scaler.fit_transform( np.array( [float(i) for i in self.f['dataset/Y']] ).reshape(-1, 1) )
