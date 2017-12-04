@@ -36,13 +36,13 @@ class Predict():
         self.L = self.L[:-1] # remove the last position of the array that corresponds to the synthetic gene
         
         pred = self.model.predict(self.X)
-        print("query\tLow\tHigh\n")
+        print("query\tLow\tHigh")
         for ix,i in enumerate(pred):
             print("\t".join([
                     self.L[ix],
                     str(100*i[0]),
                     str(100*i[1])
-                ])+"\n")
+                ]))
 
 def main(args):
     predictor = Predict(args);
