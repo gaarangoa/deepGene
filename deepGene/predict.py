@@ -25,11 +25,12 @@ class Predict():
     def pred(self):
         print("Loading input file and feature extraction")
         self.X = Kmers.extract_features(fi=self.fi, kf=self.fk)
-        print(json.dumps(self.X, indent=10))
-        # V = DictVectorizer(sparse=False)
-        # self.X = V.fit_transform( self.X.values() )
-        # self.N = X.keys()
-        # self.FT = np.array( [str(i) for i in V.get_feature_names()] )
+        # print(json.dumps(self.X, indent=10))
+        V = DictVectorizer(sparse=False)
+        self.X = V.fit_transform( self.X.values() )
+        self.N = X.keys()
+        self.FT = np.array( [str(i) for i in V.get_feature_names()] )
+        print(self.X)
 
 def main(args):
     predictor = Predict(args);
