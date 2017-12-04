@@ -42,6 +42,8 @@ class DLModel():
         rfModel = SelectFromModel(clf, prefit=True)
         self.X = rfModel.transform(self.X)
 
+        self.selected_features = np.asarray(clf.get_feature_names())[rfModel.get_support()]
+
         print("build the Y labels (numerical values for regression or categorical for classification")
 
         if r:
@@ -133,14 +135,20 @@ class DLModel():
     
     def saveModel(self):
         self.model.save(self.modelName)
+        # f = h5py.File(self.modelName+".selected_features.hdf5", "w")
+        # dataset = f.create_group('selected_features')
+        # dataset.create_dataset(self.selected_features, 'F')
+        # f.close()
     
     def modelWeights(self):
         w0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
         b0 = [ max(i) for i in self.model.layers[0].get_weights()[0] ]
-        fo = open(self.args.weights,'w')
+        fo = open(self.modelName+'.wg','w')
         for ix,i in enumerate(w0):
             fo.write( "\t".join([str(i),str(self.F[ix])])+"\n" )
-        
+
+    def predict(self):
+        self.selected_features = {i.strip().split()[1]:True for i in open(self.modelName+'.wg')}        
 
 def main(args):
     print("create the object model")
@@ -160,6 +168,9 @@ def main(args):
 
     print("save model")
     ML.saveModel()
+
+    print("save weights")
+    ML.modelWeights()
 
 def weights(args):
     ML = DLModel(args)
