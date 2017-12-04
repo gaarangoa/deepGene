@@ -9,6 +9,8 @@ from keras.utils import np_utils
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 
+import Kmers
+
 class DLModel():
     def __init__(self, args):
         self.args = args
@@ -53,8 +55,6 @@ class DLModel():
             self.YEncoder.fit( self.Y )
             self.EncodedY = self.YEncoder.transform( [ i for i in self.f['dataset/Y'] ] )
             self.Y = np_utils.to_categorical( self.EncodedY )
-
-        
 
     def loadModel(self):
         self.model = load_model(self.modelName)
@@ -146,9 +146,7 @@ class DLModel():
         fo = open(self.modelName+'.wg','w')
         for ix,i in enumerate(w0):
             fo.write( "\t".join([str(i),str(self.F[ix])])+"\n" )
-
-    def predict(self):
-        self.selected_features = {i.strip().split()[1]:True for i in open(self.modelName+'.wg')}        
+      
 
 def main(args):
     print("create the object model")

@@ -6,6 +6,8 @@ from mergerFeatures import main as mergeFeatures
 from train import main as trainModel
 from train import weights
 from train import regression as trainRegression
+from predict import main as Predictor
+
 
 def motif2json(args):
     motifToJsonMain(args.input, args.output)
@@ -21,6 +23,9 @@ def featureWeights(args):
 
 def regression(args):
     trainRegression(args)
+
+def predictor(args):
+    Predictor(args)
 
 def main():
     parser = argparse.ArgumentParser(prog="deepGene", description="welcome to the amazing deepGene software")
@@ -66,6 +71,14 @@ def main():
     regParser.add_argument('--epochs', help='number of epochs the deep learning has to run', required=True, type=int)
     regParser.add_argument('--batch_size', help='batch size of the dl', required=True, type=int)
     regParser.set_defaults(func=regression)
+
+    # predict a new entry
+    pred_parser = subparsers.add_parser('prediction', help="predict expression level")
+    pred_parser.add_argument('--input', help='input gene in fasta format', required=True)
+    pred_parser.add_argument('--model', help='trained model', required=True)
+    # regParser.add_argument('--output', help='where to store the results', required=True, type=float)
+    pred_parser.add_argument('--kmers', help='file with the selected features .wg', required=True, type=int)
+    pred_parser.set_defaults(func=predictor)
 
     # parser input files
     args = parser.parse_args()
