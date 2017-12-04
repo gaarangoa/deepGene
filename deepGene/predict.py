@@ -28,8 +28,8 @@ class Predict():
         X = []
         L = []
         for i in rd:
-            X.append(rd[i]['features'])
-            L.append(rd[i]['gene_name'])
+            X.append(i['features'])
+            L.append(i['gene_name'])
         # print(json.dumps(self.X, indent=10))
         V = DictVectorizer(sparse=False)
         self.X = V.fit_transform( self.X )
