@@ -34,8 +34,8 @@ class Predict():
         V = DictVectorizer(sparse=False)
         self.X = V.fit_transform( self.X )[:-1] # I need to remove the last element, because it corersponds to the synthetic gene 
         self.L = self.L[:-1] # remove the last position of the array that corresponds to the synthetic gene
-        self.FT = np.array( [str(i) for i in V.get_feature_names()] )
-        print(self.X, self.FT, self.L)
+        
+        print(self.model.predict(self.X))
 
 def main(args):
     predictor = Predict(args);
