@@ -11,6 +11,7 @@ from sklearn.feature_selection import SelectFromModel
 from sklearn.feature_extraction import DictVectorizer
 
 import Kmers
+import json
 
 class Predict():
     def __init__(self, args):
