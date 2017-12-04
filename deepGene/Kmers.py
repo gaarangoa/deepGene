@@ -44,6 +44,13 @@ def process_input_fasta(fi='', kmers={}, ks=[]):
             "gene_id": gene_name,
             "features": features
         })
+    
+    # add a synthetic sample to get all the features, other case the matrix will not be complete
+
+    sgene = {i:0 for i in kmers}
+    sgname = 'synthetic_gene'
+    data.append([{"gene_id": sgname, "features": sgene}])
+    # last position of the data is a synthetic gene, the purpose is to get all the features
     return data
 
 def extract_features(fi='', kf=''):
