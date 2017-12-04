@@ -77,7 +77,7 @@ def main():
     pred_parser.add_argument('--input', help='input gene in fasta format', required=True)
     pred_parser.add_argument('--model', help='trained model', required=True)
     # regParser.add_argument('--output', help='where to store the results', required=True, type=float)
-    pred_parser.add_argument('--kmers', help='file with the selected features .wg', required=True, type=int)
+    pred_parser.add_argument('--kmers', help='file with the selected features .wg', required=True)
     pred_parser.set_defaults(func=predictor)
 
     # parser input files
