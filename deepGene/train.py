@@ -42,7 +42,7 @@ class DLModel():
         rfModel = SelectFromModel(clf, prefit=True)
         self.X = rfModel.transform(self.X)
 
-        self.selected_features = np.asarray(clf.get_feature_names())[rfModel.get_support()]
+        # self.selected_features = np.asarray(clf.get_feature_names())[rfModel.get_support()]
 
         print("build the Y labels (numerical values for regression or categorical for classification")
 

@@ -15,6 +15,17 @@ into a json file
 
 
 
+## Usage
+
+merge the features into one big file
+
+    mpath=/research/gustavo1/CodonUsage
+
+    deepGene mergeFeatures --features $mpath/features/TFBs/HOCOMOCOv10.json $mpath/features/TFBs/miRNA.json $mpath/features/TFBs/RNA_Ray2013.json $mpath/features/TFBs/TFBSshape.json $mpath/features/TFBs/CIS-BP.json $mpath/features/TFBs/JASPAR_CORE_2016.json /research/shabbir5/AAV_project/output.json --genes $mpath/model/v2/labels.txt --output $mpath/model/v2/dataset.hdf5
+
+Run the training 
+    deepGene train --dataset $path/model/v2/dataset.hdf5 --model $path/model/v2/model.hdf5 --test 0.3 --epochs 180 --batch_size 64
+
 
 <!-- 1. python setup.py sdist -->
 <!-- 2. python setup.py bdist_wheel --universal -->
@@ -22,12 +33,12 @@ into a json file
 <!-- 3. twine upload --repository-url https://test.pypi.org/legacy/ dist/* -->
 
 
-## To run in cluster
+<!-- ## To run in cluster -->
 
-module load gcc/5.2.0 intel/15.3 mkl pycuda theano/0.8.2
+<!-- module load gcc/5.2.0 intel/15.3 mkl pycuda theano/0.8.2 -->
 
 
-### request to the server
+<!-- ### request to the server
 
 #!/bin/bash
 #SBATCH -J gene_design
@@ -35,5 +46,6 @@ module load gcc/5.2.0 intel/15.3 mkl pycuda theano/0.8.2
 #SBATCH -N 10  # this will not assign the node exclusively. See the note above for details
 #SBATCH -t 10:00
 #SBATCH --mem=500G
-#SBATCH --gres=gpu:pascal:1
-echo "hello world"
+#SBATCH --gres=gpu:pascal:1 -->
+<!-- echo "hello world" -->
+
