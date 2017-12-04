@@ -27,7 +27,7 @@ class Predict():
         rd = Kmers.extract_features(fi=self.fi, kf=self.fk)
         self.X = []
         self.L = []
-        for i in rd:
+        for i in rd[:-1]:
             self.X.append(i['features'])
             self.L.append(i['gene_id'])
         # print(json.dumps(self.X, indent=10))
