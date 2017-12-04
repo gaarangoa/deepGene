@@ -49,7 +49,7 @@ def process_input_fasta(fi='', kmers={}, ks=[]):
 
     sgene = {i:0 for i in kmers}
     sgname = 'synthetic_gene'
-    data.append([{"gene_id": sgname, "features": sgene}])
+    data.append({"gene_id": sgname, "features": sgene})
     # last position of the data is a synthetic gene, the purpose is to get all the features
     return data
 
