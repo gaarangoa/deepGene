@@ -24,6 +24,7 @@ merge the features into one big file
     deepGene mergeFeatures --features $mpath/features/TFBs/HOCOMOCOv10.json $mpath/features/TFBs/miRNA.json $mpath/features/TFBs/RNA_Ray2013.json $mpath/features/TFBs/TFBSshape.json $mpath/features/TFBs/CIS-BP.json $mpath/features/TFBs/JASPAR_CORE_2016.json /research/shabbir5/AAV_project/output.json --genes $mpath/model/v2/labels.txt --output $mpath/model/v2/dataset.hdf5
 
 Run the training 
+    
     deepGene train --dataset $path/model/v2/dataset.hdf5 --model $path/model/v2/model.hdf5 --test 0.3 --epochs 180 --batch_size 64
 
 

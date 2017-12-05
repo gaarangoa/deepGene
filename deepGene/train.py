@@ -65,7 +65,7 @@ class DLModel():
         print("Input dataset: ", self.X.shape)
         self.nLabels = self.YEncoder.classes_
         self.model = Sequential()
-        self.model.add( Dense(units=2000, input_dim=self.X.shape[1]) )
+        self.model.add( Dense(units=1000, input_dim=self.X.shape[1]) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
         self.model.add( Dense(units=500) )
@@ -74,7 +74,7 @@ class DLModel():
         self.model.add( Dense(units=100) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        self.model.add( Dense(units=100) )
+        self.model.add( Dense(units=50) )
         self.model.add( Activation('relu') )
         self.model.add( Dense(units=len(self.nLabels)) )
         self.model.add( Activation('softmax') )
@@ -126,7 +126,7 @@ class DLModel():
             epochs = self.epochs,
             batch_size = self.batch_size,
             verbose = 1,
-            validation_split=0.3
+            # validation_split=0.3
         )
 
     def testModel(self):
