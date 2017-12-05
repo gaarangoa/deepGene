@@ -126,7 +126,7 @@ class DLModel():
             epochs = self.epochs,
             batch_size = self.batch_size,
             verbose = 1,
-            validation_split=0.3
+            # validation_split=0.3
         )
 
     def testModel(self):
