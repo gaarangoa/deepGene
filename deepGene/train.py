@@ -65,10 +65,10 @@ class DLModel():
         print("Input dataset: ", self.X.shape)
         self.nLabels = self.YEncoder.classes_
         self.model = Sequential()
-        self.model.add( Dense(units=500, input_dim=self.X.shape[1]) )
+        self.model.add( Dense(units=1000, input_dim=self.X.shape[1]) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
-        self.model.add( Dense(units=250) )
+        self.model.add( Dense(units=500) )
         self.model.add( Activation('relu') )
         self.model.add( Dropout(0.5) )
         self.model.add( Dense(units=100) )
