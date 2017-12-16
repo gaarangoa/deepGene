@@ -11,7 +11,7 @@ import re
 
 
 class ProcessFile:
-    def __init__(self, seq_file='f8.orig.fasta', motif_file='enhancer_all.fasta'):
+    def __init__(self, seq_file='test/f8.orig.fasta', motif_file='test/enhancer_all.fasta'):
         self.seq_file = seq_file
         self.motif_file = motif_file
         with open(self.seq_file, 'r') as seq_f \
@@ -23,6 +23,7 @@ class ProcessFile:
 
     def wrapper_blast_iupac(self):
         blast_iupac.run()
+
     def print_res(self):
         print self.res
 
@@ -36,5 +37,4 @@ class ProcessFile:
 if __name__ == '__main__':
 
     v = ProcessFile()
-    v.run()
-    v.print_res()
+    print(v.aa_seq)
