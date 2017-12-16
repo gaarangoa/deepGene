@@ -18,6 +18,7 @@ class Predict():
         ''' '''
         self.args = args
         self.model_name = args.model
+        print('loading model')
         self.model = load_model(args.model)
         self.fk = args.kmers
         self.fi = args.input
