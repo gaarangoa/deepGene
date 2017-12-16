@@ -1,10 +1,12 @@
 from Bio import SeqIO
 import json
+from tqdm import tqdm as bar
 
 def match_kmers(sequence='', kmers={}, ks = []):
     ''' Given a list of kmers, see if those kmers are within the sequence '''
     cmpx = {}
-    for i in range(len(sequence)):
+    print('matching kmers')
+    for i in bar(range(len(sequence))):
         for k in ks:
             try:
                 kmer = sequence[i:i+k]
