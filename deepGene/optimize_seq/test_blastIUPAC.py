@@ -1,16 +1,17 @@
 from unittest import TestCase
 from blast_iupac import BlastIUPAC as Blast
+from Bio import SeqIO
 
 
 class TestBlastIUPAC(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestBlastIUPAC, self).__init__(*args, **kwargs)
         self.blast = Blast(seq_nt='ATGCAAATAGAGCTCTCCACC'
-                      , seq_aa='MQIELST')
+                           , seq_aa='MQIELST')
 
     def test_match_aa_trimer(self):
-        self.assertEqual('GT[TG]', Blast.match_aa_trimer(aa='V', trimer='GTK'))
-        self.assertEqual('none', Blast.match_aa_trimer(aa='A', trimer='CCT'))
+        self.assertEqual('GT[TG]', Blast.align_aa_trimer(aa='V', trimer='GTK'))
+        self.assertEqual('none', Blast.align_aa_trimer(aa='A', trimer='CCT'))
 
     def test_get_trimers_right(self):
         self.assertEqual([('M', 'TGT'), ('Q', 'GGT'), ('I', 'KNN')]
@@ -41,3 +42,14 @@ class TestBlastIUPAC(TestCase):
                          , self.blast.extend_left(seq_motif='TGTGGGARTTRT', idx_motif=5, loc_aa=2))
         self.assertEqual('none'
                          , self.blast.extend_left(seq_motif='AAGATCGARTTRT', idx_motif=5, loc_aa=2))
+
+    def test_run(self):
+        with open('data/f8.orig.fasta', 'r') as f_seq:
+            seq_nt = (SeqIO.read(f_seq, 'fasta')).seq
+            seq_aa = str(seq_nt.translate())
+        seq_motif = 'NRCGTGNNN'
+        b = Blast(seq_nt=seq_nt, seq_aa=seq_aa)
+        b.run(seq_motif)
+        print(b.res)
+        self.assertIsNot({}, b.res)
+

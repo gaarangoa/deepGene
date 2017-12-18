@@ -13,7 +13,7 @@ class TestBlastIUPAC(unittest.TestCase):
             self.l_motif = [seq_motif for seq_motif in SeqIO.parse('enhancer_all.fasta')]
 
     def test_match_aa_trimer(self):
-        self.assertEqual('T[TG]', Blast.match_aa_trimer(aa='V', trimer='GTK'))
+        self.assertEqual('T[TG]', Blast.align_aa_trimer(aa='V', trimer='GTK'))
 
     def test_get_trimers_right(self):
         pass
