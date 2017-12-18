@@ -15,13 +15,13 @@ class TestBlastIUPAC(TestCase):
 
     def test_get_trimers_right(self):
         self.assertEqual([('M', 'TGT'), ('Q', 'GGT'), ('I', 'KNN')]
-                         , self.blast.get_trimers_right(seq_motif='TGTGGTK', idx_motif=0, loc_aa=0))
+                         , self.blast.get_trimers_right(seq_motif='TGTGGTK', motif_idx=0, aa_idx=0))
         self.assertEqual([('M', 'TGT'), ('Q', 'GGT'), ('I', 'KKK')]
-                         , self.blast.get_trimers_right(seq_motif='TGTGGTKKK', idx_motif=0, loc_aa=0))
+                         , self.blast.get_trimers_right(seq_motif='TGTGGTKKK', motif_idx=0, aa_idx=0))
         self.assertEqual([('M', 'TGT'), ('Q', 'GGT'), ('I', 'KKN')]
-                         , self.blast.get_trimers_right(seq_motif='TGTGGTKK', idx_motif=0, loc_aa=0))
+                         , self.blast.get_trimers_right(seq_motif='TGTGGTKK', motif_idx=0, aa_idx=0))
         self.assertEqual([('Q', 'TGG'), ('I', 'TKK')]
-                         , self.blast.get_trimers_right(seq_motif='TGTGGTKK', idx_motif=2, loc_aa=1))
+                         , self.blast.get_trimers_right(seq_motif='TGTGGTKK', motif_idx=2, aa_idx=1))
 
     def test_get_trimers_left(self):
         self.assertEqual([('E', 'TGG'), ('I', 'NTG')]
@@ -33,9 +33,9 @@ class TestBlastIUPAC(TestCase):
 
     def test_extend_right(self):
         self.assertEqual('none'
-                         , self.blast.extend_right(seq_motif='TGTGGTKK', idx_motif=5, loc_aa=3))
+                         , self.blast.extend_right(seq_motif='TGTGGTKK', motif_idx=5, aa_idx=3))
         self.assertEqual('GA[AG]TT[AG]TC[ACTG]'
-                         , self.blast.extend_right(seq_motif='TGTGGGARTTRT', idx_motif=5, loc_aa=3))
+                         , self.blast.extend_right(seq_motif='TGTGGGARTTRT', motif_idx=5, aa_idx=3))
 
     def test_extend_left(self):
         self.assertEqual('none'
