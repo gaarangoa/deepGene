@@ -127,7 +127,8 @@ class BlastIUPAC:
                 l_n.append(self.seq_nt[i_nt:i_nt + 3])
                 l_a.append(self.seq_aa[i_aa])
                 aa_upper_bound = i_aa
-
+        if not aa_upper_bound:
+            raise ExtensionOutOfRangeException(l_m)
         return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_upper_bound
 
     def extend_left(self, motif_idx, aa_idx):
@@ -171,6 +172,8 @@ class BlastIUPAC:
                 l_n.append(self.seq_nt[i_nt: i_nt + 3])
                 l_a.append(self.seq_aa[i_aa])
                 aa_lower_bound = i_aa
+        if not aa_lower_bound:
+            raise ExtensionOutOfRangeException(l_m)
         return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_lower_bound
 
     def update_d_results(self, reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound):
