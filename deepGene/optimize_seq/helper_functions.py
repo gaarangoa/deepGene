@@ -50,3 +50,28 @@ def attach_motif_to_seq(seq_motif, seq_aa):
                     else:
                         d[motif_idx] |= seq_idx
     return d
+
+
+def align_aa_trimer(aa, trimer):
+    """
+    align aa to a trimer. This is an exact match. If the aa and the trimer cannot be aligned, we return 'none'.
+    Otherwise a regular expression of the alignment is returned. Alignment is based on the reverse translation,
+    so a nucleotide (iupac) can be aligned to a set of nucleotides. In otherwise, it is the intersection of
+    the codon of aa and the motif trimer
+    :param aa: single character for aa
+    :param trimer: of the motif wherer the iupac annotation is accepted
+    :return: regular expression of the trimer resultant from the intersection of the codon and motif
+    """
+    for nt in D_AA_CODON[aa]:
+        nt1 = nt[0] & D_IUPAC_NT[trimer[0]]
+        nt2 = nt[1] & D_IUPAC_NT[trimer[1]]
+        nt3 = nt[2] & D_IUPAC_NT[trimer[2]]
+        if nt1 and nt2 and nt3:
+            reg_trimer = reduce(lambda x, y: x + y, [reduce(lambda x, y: x + y, i) if len(i) == 1
+                                                     else '[' + reduce(lambda x, y: x + y, i) + ']'
+                                                     for i in [nt1, nt2, nt3]])
+            return reg_trimer
+    return 'none'
+
+
+

@@ -2,7 +2,7 @@
 finds possible motifs
 """
 
-__version__ = '1.0.0'
+__version__ = '1.1.0'
 __author__ = 'Dhoha Abid'
 
 import reverse_translate as rt
@@ -21,6 +21,11 @@ D_IUPAC_NT = iupac.d_dg_nt
 D_AA_CODON = rt.d_aa_nt
 
 
+class ExtensionOutOfRangeException(Exception):
+    def __init__(self, msg='broken'):
+        self.msg = msg
+
+
 class BlastIUPAC:
     """
 
@@ -31,8 +36,11 @@ class BlastIUPAC:
         :param seq_nt: nucleotide sequence
         :param seq_aa: amino acid sequence
         """
+        # TODO should be string or Seq (to decide about the input of the constructor)l
         self.seq_nt = seq_nt
         self.seq_aa = seq_aa
+        self.len_aa = len(seq_aa) # TODO I need to remove the star from the sequence
+        self.len_nt = len(seq_nt)
         self.seq_motif = None
         self.res_motifs_exist = {}  # will contain the motifs that already exists in the nt sequence
         self.res_motif_optimize = {}  # ill contain the motifs that can optimize (match) the nt sequence
@@ -65,70 +73,92 @@ class BlastIUPAC:
 
     def extend_right(self, motif_idx, aa_idx):
         """
-        intersection of the motif and aa. right extension
-        :param motif_idx: motif start index
-        :param aa_idx: aa index in the sequence
-        :return:
+        extend the alignment to the right. get all the trimers of the motif, and corresponding aa in the sequence
+        using get_trimers_right. Then align them using the helper align_aa_trimer. Concatenate the resultant alignment,
+        then return it. Regular expressions are used to return the right extension
+        :param motif_idx: start index of the motif sequence
+        :param aa_idx: the aa index in the sequence
+        :return: regular expression of the right extension
         """
-        reg_exp_extension = ''
-        for aa, motif_trimer in self.get_trimers_right(motif_idx, aa_idx):
-            reg_exp_trimer = self.align_aa_trimer(aa, motif_trimer)
-            if reg_exp_trimer != 'none':
-                reg_exp_extension += reg_exp_trimer
-            else:
-                return 'none'
-        return reg_exp_extension
+        try:
+            extension = '' # this one is the intersection
+            l, aa_upper_bound = self.get_trimers_right(motif_idx, aa_idx)
+            for motif_trimer, nt_trimer, aa in l:
+                reg_exp_trimer = helper.align_aa_trimer(aa, motif_trimer)
+                if reg_exp_trimer != 'none':
+                    extension += reg_exp_trimer
+                else:
+                    return 'none'
+            nt_trimers = reduce(lambda x, y: x + y, [t[1] for t in l])
+            return extension, nt_trimers, aa_upper_bound
+        except ExtensionOutOfRangeException, e:
+            return 'none'
 
     def get_trimers_right(self, motif_idx, aa_idx):
         """
-        generate the list of the trimers for right extension. The extension can results in a longer right extension
-        compared to the motif as we extend by three to preserve the aa sequence
-        :param motif_idx: motif start index
-        :param aa_idx: aa start index
-        :return: list of tuples (aa, motif_trimer)
+        generate a list of trimers for right extension. The list would have tuple of motif trimers, nt trimer, and aa.
+        The items in the tuple can be aligned in the method extend_right to see if we can match the motifs to the aa
+        codons. In case the extension out range the nt sequence, we throw an exception ExtensionOutOfRangeException
+        :param motif_idx: start index in the motif sequence (the nail)
+        :param aa_idx: start index in the aa sequence
+        :return: list of tuples (motif_trimer, nt_trimer, aa)
+        """
+        l_m = [self.seq_motif[i:i + 3].ljust(3, 'N')
+               for i in range(motif_idx, len(self.seq_motif), 3)] # trimers of motif for right extension
+        l_n = [] # trimers of the nt sequence for the right extension
+        l_a = []  # aa acids for right extension
+        aa_upper_bound = None #inclusive
+        for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx, aa_idx + len(l_m))]:
+            if i_nt + 3 > self.len_nt:
+                raise ExtensionOutOfRangeException(i_nt)
+            else:
+                l_n.append(self.seq_nt[i_nt:i_nt + 3])
+                l_a.append(self.seq_aa[i_aa])
+                aa_upper_bound = i_aa
+
+        return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_upper_bound
+
+    def extend_left(self, motif_idx, aa_idx):
+        """
+        ame description as extend_right, just this method is doing it for the left extension
+        :param motif_idx: motif_idx: start index of the motif sequence
+        :param aa_idx: aa_idx: the aa index in the sequence
+        :return: regular expression of the left extension
         """
         try:
-            l_trimer = [(self.seq_aa[x], self.seq_motif[y:y + 3].ljust(3, 'N'))
-               for x, y in enumerate([i for i in range(motif_idx, len(self.seq_motif), 3)], aa_idx)]
-        except KeyError, e:
-            # TODO I want to catch the key and if = to *, pass, else exit and show the stack
-            pass
-            # TODO if right extension depasse the length of the sequence o handle and control
-        except IndexError, e:
-            pass
-        return l_trimer
+            extension = ''
+            l, aa_lower_bound = self.get_trimers_left(motif_idx, aa_idx)
+            for motif_timer, nt_trimer, aa in l:
+                reg_exp_trimer = helper.align_aa_trimer(aa, motif_timer)
+                if reg_exp_trimer != 'none':
+                    extension = reg_exp_trimer + extension
+                else:
+                    return 'none'
+            nt_trimers = reduce(lambda x, y: y + x, [t[1] for t in l])
+            return extension, nt_trimers, aa_lower_bound
+        except ExtensionOutOfRangeException, e:
+            return 'none'
 
-
-    def extend_left(self, seq_motif, idx_motif, loc_aa):
-        left_ext = ''
-        for aa, e in self.get_trimers_left(seq_motif, idx_motif, loc_aa):
-            reg_trimer= self.align_aa_trimer(aa, e)
-            if reg_trimer != 'none':
-                left_ext = reg_trimer + left_ext
+    def get_trimers_left(self, motif_idx, aa_idx):
+        """
+        same description as for get_trimers_right, but this method is doing it for the left extension
+        :param motif_idx: start index in the motif sequence (the nail)
+        :param aa_idx: start index in the aa sequence
+        :return: list of tuples (motif_trimer, nt_trimer, aa)
+        """
+        l_m = [self.seq_motif[y - 3:y].rjust(3, 'N') if y - 3 >= 0 else self.seq_motif[0:y].rjust(3, 'N')
+               for y in range (motif_idx, 0, -3)]
+        l_n = []
+        l_a = []
+        aa_lower_bound = None #inclusive
+        for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx - 1, aa_idx - len(l_m) -1, -1)]:
+            if i_nt < 0:
+                raise ExtensionOutOfRangeException(i_nt)
             else:
-                return 'none'
-        return left_ext
-
-    @staticmethod
-    def align_aa_trimer(aa, trimer):
-        for nt in D_AA_CODON[aa]:
-            nt1 = nt[0] & D_IUPAC_NT[trimer[0]]
-            nt2 = nt[1] & D_IUPAC_NT[trimer[1]]
-            nt3 = nt[2] & D_IUPAC_NT[trimer[2]]
-            if nt1 and nt2 and nt3:
-                reg_trimer = reduce(lambda x, y: x + y, [reduce(lambda x, y: x + y, i) if len(i) == 1
-                                                         else '[' + reduce(lambda x, y: x + y, i) + ']'
-                                                         for i in [nt1, nt2, nt3]])
-                return reg_trimer
-        return 'none'
-
-
-
-    def get_trimers_left(self, seq_motif, idx_motif, loc_aa):
-        l_trimer = [seq_motif[y - 3:y].rjust(3, 'N') if y - 3 >= 0 else seq_motif[0:y].rjust(3, 'N')
-                for xx, y in enumerate([i for i in range(idx_motif, 0, -3)], loc_aa)]
-        l_idx_aa = [self.seq_aa[i] for i in range(loc_aa, loc_aa - int(math.ceil(idx_motif/float(3))), -1)]
-        return zip(l_idx_aa, l_trimer)
+                l_n.append(self.seq_nt[i_nt: i_nt + 3])
+                l_a.append(self.seq_aa[i_aa])
+                aa_lower_bound = i_aa
+        return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_lower_bound
 
     def update_res(self, seq_opt, seq_motif, idx_motif, idx_aa):
         # get the indices of the aligned motif in the aa and nt seq
