@@ -1,5 +1,8 @@
 """
 finds possible motifs
+algo similat to blast
+finds the spots that can be converted to motifs
+
 """
 
 __version__ = '1.1.0'
@@ -9,13 +12,11 @@ import reverse_translate as rt
 import encode_iupac_to_nt as iupac
 import helper_functions as helper
 import re
-import math
 from Bio import SeqIO
 import sys
-# import traceback
+import traceback
 from functools import reduce
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
+
 
 D_IUPAC_NT = iupac.d_dg_nt
 D_AA_CODON = rt.d_aa_nt
@@ -50,26 +51,28 @@ class BlastIUPAC:
             self.run(seq_motif=m)
 
     def run(self, seq_motif):
+        """
+        after aligning all the trimer of the motif sequence to the aa sequence using the helper function
+        attach_motif_to_aa_seq, we loop over all these seeds to extend them using extend_right and extend_left.
+        The results are the set of motifs that can be aligned to the sequence
+        :param seq_motif: motif sequence, iupac is supported
+        :return:
+        """
         self.seq_motif = seq_motif
-        d_motif_idx__seq_idx = helper.attach_motif_to_seq(seq_motif, self.seq_aa)
-        for motif_idx, l_loc_aa in d_motif_idx__seq_idx.items():
-            for loc_aa in l_loc_aa:  # extend of enh anchor, we loop over these gn location of the previous dict
+        d_motif_idx__seq_aa_idx = helper.attach_motif_to_aa_seq(seq_motif, self.seq_aa)
+        for motif_idx, l_aa_idx in d_motif_idx__seq_aa_idx.items():
+            for aa_idx in l_aa_idx:
                 try:
-                    right_ext = self.extend_right(seq_motif, motif_idx, loc_aa)
-                    if right_ext != 'none':
-                        left_ext = self.extend_left(seq_motif, motif_idx, loc_aa - 1)
-                        if left_ext != 'none':
-                            seq_opt = left_ext + right_ext
-                            self.update_res(seq_opt, seq_motif, motif_idx, loc_aa)
-                except KeyError, e:
-                    # print 'I got a KeyError - reason "%s"' % str(e)
-                    continue
-                except IndexError, e:
-                    # print 'I got an IndexError - reason "%s"' % str(e)
-                    continue
-                # except:
-                #     pass
-                # traceback.print_exc()
+                    right_extension, right_nt_align, aa_upper_bound = self.extend_right(motif_idx, aa_idx)
+                    if right_extension != 'none':
+                        left_extension, left_nt_align, aa_lower_bound = self.extend_left(motif_idx, aa_idx - 1)
+                        if left_extension != 'none':
+                            reg_exp_seq_optimized = left_extension + right_extension
+                            wild_align = right_nt_align + left_nt_align
+                            self.update_d_results(reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound)
+                except:
+                    traceback.print_exc()
+                    sys.exit(1)
 
     def extend_right(self, motif_idx, aa_idx):
         """
@@ -160,100 +163,29 @@ class BlastIUPAC:
                 aa_lower_bound = i_aa
         return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_lower_bound
 
-    def update_res(self, seq_opt, seq_motif, idx_motif, idx_aa):
-        # get the indices of the aligned motif in the aa and nt seq
-        left_idx_nt = idx_aa * 3 - len(seq_motif[:idx_motif]) - (0 if len(seq_motif[:idx_motif]) % 3 == 0 else (3 - (len(seq_motif[:idx_motif]) % 3)))
-        right_idx_nt = idx_aa * 3 + len(seq_motif[idx_motif:]) + (0 if len(seq_motif[idx_motif:]) % 3 == 0 else (3 - (len(seq_motif[idx_motif:]) % 3)))
-        left_idx_aa = idx_aa - math.ceil(len(seq_motif[:idx_motif]) / 3)
-        right_idx_aa = idx_aa + math.ceil(len(seq_motif[idx_motif:]) / 3)
-
-        loc_aa = (left_idx_aa, right_idx_aa)
-        loc_nt = (left_idx_nt, right_idx_nt)
-        seq_wild = str(self.seq_nt[left_idx_nt:right_idx_nt])
-        res = (seq_opt, seq_wild, loc_aa, loc_nt)
-
-        if re.match(seq_opt, seq_wild):
-            if seq_motif in self.res_motifs_exist.keys():
-                if not res in self.res_motifs_exist[seq_motif]:
-                    self.res_motifs_exist[seq_motif].append(res)
+    def update_d_results(self, reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound):
+        """
+        aa
+        :param reg_exp_seq_optimized:
+        :param wild_align:
+        :param aa_lower_bound: inclusive
+        :param aa_upper_bound: inclusive
+        :return:
+        """
+        res = (reg_exp_seq_optimized, wild_align, (aa_lower_bound, aa_upper_bound)
+               , (aa_lower_bound * 3, aa_upper_bound * 2 + 3))
+        if re.match(reg_exp_seq_optimized, wild_align):
+            if self.seq_motif in self.res_motifs_exist.keys():
+                if not res in self.res_motifs_exist[self.seq_motif]:
+                    self.res_motifs_exist[self.seq_motif].append(res)
             else:
-                self.res_motifs_exist[seq_motif] = [res]
+                self.res_motifs_exist[self.seq_motif] = [res]
         else:
-            if seq_motif in self.res_motif_optimize.keys():
-                if not res in self.res_motif_optimize[seq_motif]:
-                    self.res_motif_optimize[seq_motif].append(res)
+            if self.seq_motif in self.res_motif_optimize.keys():
+                if not res in self.res_motif_optimize[self.seq_motif]:
+                    self.res_motif_optimize[self.seq_motif].append(res)
             else:
-                self.res_motif_optimize[seq_motif] = [res]
-
-    @staticmethod
-    def reg_exp_helper(string):
-        l = []
-        flag = False
-        for s in string:
-            if s == '[':
-                flag = True
-                l_sub = []
-            elif s == ']':
-                flag = False
-                l.append(l_sub)
-            elif flag:
-                l_sub.append(s)
-            if s != '[' and s != ']' and not flag:
-                l.append(s)
-        return l
-
-    # def print_res(self, ):
-    #     print self.res
-    def process_res(self):
-        seq_empty = ['N' for i in range(len(self.seq_nt))]
-        for k, v in self.res_motif_optimize.items():
-            for pm in v:
-                idx_start = pm[3][0]
-                idx_end = pm[3][1]
-                if idx_start > 7044:
-                    continue
-                if len(pm[0]) != len(pm[1]):
-                    continue
-                if len(set(seq_empty[idx_start:idx_end])) == 1:
-                    for i, s in enumerate(self.reg_exp_helper(pm[0]), idx_start):
-                        try:
-                            if type(s).__name__ == 'str':
-                                seq_empty[i] = s
-                            else:
-                                seq_empty[i] = s[0]
-                        except IndexError:
-                            print k
-                            print pm
-                            sys.exit(0)
-        j = 0
-        l = [None] * len(self.seq_nt)
-        for s1, s2 in zip(seq_empty, self.seq_nt):
-            if s1 == 'N':
-                l[j] = s2
-            else:
-                l[j] = s1
-            j += 1
-
-        return reduce(lambda x, y: x + y, l)
-
-    def check_res(self, string):
-        seq_res = Seq(string)
-        translated = seq_res.translate()
-        if translated != self.seq_aa:
-            print 'we got serious pb'
-        with open('res/res.liver.motif.v2.fasta', 'w') as f:
-            SeqIO.write(SeqRecord(seq_res, id='liver.motif.v1'), f, 'fasta')
-
-    def check_how_much_different(self, string):
-        if string != self.seq_nt:
-            print 'it ''s diffrent'
-        j = 0
-        for s1, s2 in zip(string, self.seq_nt):
-            if s1 != s2:
-                print j
-                print s1
-                print s2
-            j += 1
+                self.res_motif_optimize[self.seq_motif] = [res]
 
 
 if __name__ == '__main__':

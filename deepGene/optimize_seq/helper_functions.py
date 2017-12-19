@@ -30,7 +30,7 @@ def index_aa_seq(seq_aa):
     return d_aa_idx
 
 
-def attach_motif_to_seq(seq_motif, seq_aa):
+def attach_motif_to_aa_seq(seq_motif, seq_aa):
     """
     attach the motif to the sequence. Attachment is based on the codons (aa) of the sequence and a trimer
     of the motif. Attach an index of the motif to the index of the sequence and save the results in a dictionary.
@@ -73,5 +73,21 @@ def align_aa_trimer(aa, trimer):
             return reg_trimer
     return 'none'
 
+
+def transform_reg_exp_to_list(string):
+    l = []
+    flag = False
+    for s in string:
+        if s == '[':
+            flag = True
+            l_sub = []
+        elif s == ']':
+            flag = False
+            l.append(l_sub)
+        elif flag:
+            l_sub.append(s)
+        elif s != '[' and s != ']' and not flag:
+            l.append(s)
+    return l
 
 
