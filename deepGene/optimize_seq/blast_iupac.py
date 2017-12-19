@@ -16,6 +16,7 @@ from Bio import SeqIO
 import sys
 import traceback
 from functools import reduce
+from Bio.Seq import Seq
 
 
 D_IUPAC_NT = iupac.d_dg_nt
@@ -23,28 +24,32 @@ D_AA_CODON = rt.d_aa_nt
 
 
 class ExtensionOutOfRangeException(Exception):
-    def __init__(self, msg='broken'):
+    def __init__(self, msg):
         self.msg = msg
 
 
 class BlastIUPAC:
     """
-
+    an implementation of blast to support the iupac alignments
     """
-    def __init__(self, seq_nt, seq_aa):
+    def __init__(self, seq_nt):
         """
         initialize the input variables and define output variables
-        :param seq_nt: nucleotide sequence
-        :param seq_aa: amino acid sequence
+        :param seq_nt: nucleotide sequence (of type string)
+        :param seq_aa: amino acid sequence (of type string)
         """
-        # TODO should be string or Seq (to decide about the input of the constructor)l
         self.seq_nt = seq_nt
-        self.seq_aa = seq_aa
-        self.len_aa = len(seq_aa) # TODO I need to remove the star from the sequence
+        self.seq_aa = self.translate_seq_nt(seq_nt)
+        self.len_aa = len(self.seq_aa)
         self.len_nt = len(seq_nt)
         self.seq_motif = None
         self.res_motifs_exist = {}  # will contain the motifs that already exists in the nt sequence
         self.res_motif_optimize = {}  # ill contain the motifs that can optimize (match) the nt sequence
+
+    @staticmethod
+    def translate_seq_nt(seq_nt):
+        seq_nt = Seq(seq_nt)
+        return str(seq_nt.translate())
 
     def run_batch(self, l_motif):
         for m in l_motif:
@@ -64,12 +69,15 @@ class BlastIUPAC:
             for aa_idx in l_aa_idx:
                 try:
                     right_extension, right_nt_align, aa_upper_bound = self.extend_right(motif_idx, aa_idx)
-                    if right_extension != 'none':
-                        left_extension, left_nt_align, aa_lower_bound = self.extend_left(motif_idx, aa_idx - 1)
-                        if left_extension != 'none':
-                            reg_exp_seq_optimized = left_extension + right_extension
-                            wild_align = right_nt_align + left_nt_align
-                            self.update_d_results(reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound)
+                    left_extension, left_nt_align, aa_lower_bound = self.extend_left(motif_idx, aa_idx)
+                    reg_exp_seq_optimized = left_extension + right_extension
+                    wild_align = left_nt_align + right_nt_align
+                    self.update_d_results(reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound)
+                except ValueError as e:
+                    if str(e) == 'too many values to unpack': # if extend_righ and extend_left return 'none', we won't be able to unpack the values and thus go to the next value in the loop
+                        continue
+                    else:
+                        print e
                 except:
                     traceback.print_exc()
                     sys.exit(1)
@@ -84,16 +92,17 @@ class BlastIUPAC:
         :return: regular expression of the right extension
         """
         try:
-            extension = '' # this one is the intersection
+            extension = ''  # this one is the intersection
+            wild = ''
             l, aa_upper_bound = self.get_trimers_right(motif_idx, aa_idx)
-            for motif_trimer, nt_trimer, aa in l:
+            for motif_trimer, wild_trimer, aa in l:
                 reg_exp_trimer = helper.align_aa_trimer(aa, motif_trimer)
                 if reg_exp_trimer != 'none':
                     extension += reg_exp_trimer
+                    wild += wild_trimer
                 else:
                     return 'none'
-            nt_trimers = reduce(lambda x, y: x + y, [t[1] for t in l])
-            return extension, nt_trimers, aa_upper_bound
+            return extension, wild, aa_upper_bound
         except ExtensionOutOfRangeException, e:
             return 'none'
 
@@ -108,9 +117,9 @@ class BlastIUPAC:
         """
         l_m = [self.seq_motif[i:i + 3].ljust(3, 'N')
                for i in range(motif_idx, len(self.seq_motif), 3)] # trimers of motif for right extension
-        l_n = [] # trimers of the nt sequence for the right extension
+        l_n = []  # trimers of the nt sequence for the right extension
         l_a = []  # aa acids for right extension
-        aa_upper_bound = None #inclusive
+        aa_upper_bound = None  # inclusive
         for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx, aa_idx + len(l_m))]:
             if i_nt + 3 > self.len_nt:
                 raise ExtensionOutOfRangeException(i_nt)
@@ -130,15 +139,16 @@ class BlastIUPAC:
         """
         try:
             extension = ''
+            wild = ''
             l, aa_lower_bound = self.get_trimers_left(motif_idx, aa_idx)
-            for motif_timer, nt_trimer, aa in l:
+            for motif_timer, wild_trimer, aa in l:
                 reg_exp_trimer = helper.align_aa_trimer(aa, motif_timer)
                 if reg_exp_trimer != 'none':
                     extension = reg_exp_trimer + extension
+                    wild = wild_trimer + wild
                 else:
                     return 'none'
-            nt_trimers = reduce(lambda x, y: y + x, [t[1] for t in l])
-            return extension, nt_trimers, aa_lower_bound
+            return extension, wild, aa_lower_bound
         except ExtensionOutOfRangeException, e:
             return 'none'
 
@@ -150,11 +160,11 @@ class BlastIUPAC:
         :return: list of tuples (motif_trimer, nt_trimer, aa)
         """
         l_m = [self.seq_motif[y - 3:y].rjust(3, 'N') if y - 3 >= 0 else self.seq_motif[0:y].rjust(3, 'N')
-               for y in range (motif_idx, 0, -3)]
+               for y in range(motif_idx, 0, - 3)]
         l_n = []
         l_a = []
-        aa_lower_bound = None #inclusive
-        for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx - 1, aa_idx - len(l_m) -1, -1)]:
+        aa_lower_bound = None  # inclusive
+        for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx - 1, aa_idx - len(l_m) - 1, -1)]:
             if i_nt < 0:
                 raise ExtensionOutOfRangeException(i_nt)
             else:
@@ -173,7 +183,7 @@ class BlastIUPAC:
         :return:
         """
         res = (reg_exp_seq_optimized, wild_align, (aa_lower_bound, aa_upper_bound)
-               , (aa_lower_bound * 3, aa_upper_bound * 2 + 3))
+               , (aa_lower_bound * 3, aa_upper_bound * 3 + 3))
         if re.match(reg_exp_seq_optimized, wild_align):
             if self.seq_motif in self.res_motifs_exist.keys():
                 if not res in self.res_motifs_exist[self.seq_motif]:
@@ -188,28 +198,27 @@ class BlastIUPAC:
                 self.res_motif_optimize[self.seq_motif] = [res]
 
 
+def run_with_one_motif():
+    seq_motif = 'WNNVYTAATTARYYNNN'
+    with open('data/f8.orig.fasta', 'r') as f_seq_nt:
+        seq_nt = str(SeqIO.read(f_seq_nt, 'fasta').seq)
+    b = BlastIUPAC(seq_nt)
+    b.run(seq_motif)
+    print b.res_motif_optimize
+
+
+def run_with_multiple_motif():
+    with open('data/f8.orig.fasta', 'r') as f_seq_nt\
+            , open('data/liver_motifs.fasta') as f_motifs:
+        seq_nt = str(SeqIO.read(f_seq_nt, 'fasta').seq)
+        l_motif = [str(record.seq) for record in SeqIO.parse(f_motifs, 'fasta')]
+    b = BlastIUPAC(seq_nt)
+    b.run_batch(l_motif)
+    print b.res_motif_optimize
+
+    pass
+
+
 if __name__ == '__main__':
-    # motif = 'YCYMMAYW'
-    with open('data/f8.orig.fasta', 'r') as f_seq\
-            , open('data/liver_motifs.fasta', 'r') as f_liver_motifs\
-            , open('data/enhancer_all.fasta', 'r') as f_motifs:
-        nt = SeqIO.read(f_seq, 'fasta').seq
-        aa = str(nt.translate())
-        ll_motif = [str(record_motif.seq) for record_motif in SeqIO.parse(f_motifs, 'fasta')]
-        l_liver_motif = [str(record_motif.seq) for record_motif in SeqIO.parse(f_liver_motifs, 'fasta')]
-        # seq_motif = 'NRCGTGNNN'
-        sseq_motif = 'NGDBCA'
-
-    b = BlastIUPAC(seq_nt=nt, seq_aa=aa)
-    b.run_batch(l_liver_motif)
-    # print b.possible_motif
-    # b.run(sseq_motif)
-    res = b.process_res()
-    print res
-    b.check_res(res)
-    b.check_how_much_different(res)
-
-
-    # b.run(seq_motif)
-    # print b.possible_motif
-
+    # run_with_one_motif()
+    run_with_multiple_motif()
