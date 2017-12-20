@@ -1,4 +1,4 @@
-import encode_iupac_to_nt as iupac
+import dict_iupac_nt as iupac
 import dict_aa_codon as rv
 import blast_iupac
 from Bio.Seq import Seq

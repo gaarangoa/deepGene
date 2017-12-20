@@ -8,7 +8,7 @@ __author__ = 'Dhoha Abid'
 from json import dump
 
 
-d_iupac_nt = {
+D_IUPAC_NT = {
     'A':{'A'}
     , 'C':{'C'}
     , 'G':{'G'}
@@ -29,8 +29,8 @@ d_iupac_nt = {
 
 def dump_dict(f_name):
     with open(f_name, 'w') as f:
-        dump(d_iupac_nt, f)
+        dump(D_IUPAC_NT, f)
 
 
 def get_dict():
-    return d_iupac_nt
+    return D_IUPAC_NT

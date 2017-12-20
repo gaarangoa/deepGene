@@ -8,20 +8,12 @@ optimize the nucleotide sequence
 __version__ = '1.1.0'
 __author__ = 'Dhoha Abid'
 
-from dict_aa_codon import d_aa_codon
-import dict_aa_codon as rt
-import encode_iupac_to_nt as iupac
+
 import helper_functions as helper
 import re
 from Bio import SeqIO
 import sys
 import traceback
-from functools import reduce
-from Bio.Seq import Seq
-
-
-D_IUPAC_NT = iupac.d_iupac_nt
-D_AA_CODON = d_aa_codon
 
 
 class ExtensionOutOfRangeException(Exception):
@@ -30,19 +22,14 @@ class ExtensionOutOfRangeException(Exception):
 
 
 class BlastIUPAC:
-    """
-    an implementation of blast to support the iupac alignments
-    """
-    def __init__(self, seq_nt):
+    def __init__(self, seq_wild_nt):
         """
-        initialize the input variables and define output variables
-        :param seq_nt: nucleotide sequence (of type string)
-        :param seq_aa: amino acid sequence (of type string)
+        :param seq_wild_nt: nucleotide sequence (of type string)
         """
-        self.seq_nt = seq_nt
-        self.seq_aa = helper.translate_nt_sequence(seq_nt)
-        self.len_aa = len(self.seq_aa)
-        self.len_nt = len(seq_nt)
+        self.seq_wild_nt = seq_wild_nt
+        self.seq_wild_aa = helper.translate_nt_sequence(seq_wild_nt)
+        self.len_seq_wild_aa = len(self.seq_wild_aa)
+        self.len_seq_wild_nt = len(seq_wild_nt)
         self.seq_motif = None
         self.existent_motifs = {}  # will contain the motifs that already exists in the nt sequence
         self.motifs_to_integrate = {}  # will contain the motifs that can optimize the nt sequence
@@ -53,146 +40,154 @@ class BlastIUPAC:
 
     def run(self, seq_motif):
         """
-        after aligning all the trimer of the motif sequence to the aa sequence using the helper function
-        attach_motif_to_aa_seq, we loop over all these seeds to extend them using extend_right and extend_left.
-        The results are the set of motifs that can be aligned to the sequence
-        :param seq_motif: motif sequence, iupac is supported
-        :return:
+        This method joins all the pieces of this class together to run this version of blast that supports IUPAC.
+        It generates the seeds - alignment of a trimer of the motif to the aa index. Then, it extends these seeds
+        to the right and left side. Then, if the right and left extension result in an exact match, we update
+        the results. The results include two dictionaries the existing motif in the sequence and the motifs that
+        can be integrated in the wild sequences with the corresponding start and end locations.
+        :param seq_motif: motif sequence
+        :return: update self.existent_motifs and motifs_to_integrate
         """
         self.seq_motif = seq_motif
-        d_motif_idx__seq_aa_idx = helper.attach_motif_to_aa_seq(seq_motif, self.seq_aa)
-        for motif_idx, l_aa_idx in d_motif_idx__seq_aa_idx.items():
+        d_motif_idx__aa_idx = helper.attach_motif_to_aa_seq(seq_motif, self.seq_wild_aa)
+        for motif_idx, l_aa_idx in d_motif_idx__aa_idx.items():
             for aa_idx in l_aa_idx:
                 try:
-                    right_extension, right_nt_align, aa_upper_bound = self.extend_right(motif_idx, aa_idx)
-                    left_extension, left_nt_align, aa_lower_bound = self.extend_left(motif_idx, aa_idx)
-                    reg_exp_seq_optimized = left_extension + right_extension
-                    wild_align = left_nt_align + right_nt_align
-                    self.update_d_results(reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound)
+                    right_align_extend, right_align_wild, aa_idx_upper_bound = self.extend_right(motif_idx, aa_idx)
+                    left_align_extend, left_align_wild, aa_idx_lower_bound = self.extend_left(motif_idx, aa_idx)
+                    align_optimized = left_align_extend + right_align_extend
+                    align_wild = left_align_wild + right_align_wild
+                    self.update_results(align_optimized, align_wild, aa_idx_lower_bound, aa_idx_upper_bound)
                 except ValueError as e:
-                    if str(e) == 'too many values to unpack': # if extend_righ and extend_left return 'none', we won't be able to unpack the values and thus go to the next value in the loop
+                    if str(e) == 'too many values to unpack':
                         continue
                     else:
                         print e
-                except:
+                except Exception:
                     traceback.print_exc()
                     sys.exit(1)
 
     def extend_right(self, motif_idx, aa_idx):
         """
-        extend the alignment to the right. get all the trimers of the motif, and corresponding aa in the sequence
-        using get_trimers_right. Then align them using the helper align_aa_trimer. Concatenate the resultant alignment,
-        then return it. Regular expressions are used to return the right extension
-        :param motif_idx: start index of the motif sequence
-        :param aa_idx: the aa index in the sequence
-        :return: regular expression of the right extension
+        extend the alignment to the right. get all the trimers of the motif starting from motif_idx, and corresponding
+        aa in the nt sequence via get_trimers_right. Then, align them via align_aa_trimer. Concatenate the resulting
+        alignment and return it.
+        :param motif_idx: start index in the motif sequence
+        :param aa_idx: start index in the aa sequence
+        :return: a tuple: (regular expression of the right extension (intersection of the alignment of motif and aa)
+                            , corresponding alignment of the wild sequence, upper bound index of aa -inclusive)
         """
         try:
-            extension = ''  # this one is the intersection
-            wild = ''
-            l, aa_upper_bound = self.get_trimers_right(motif_idx, aa_idx)
+            align_extend = ''
+            align_wild = ''
+            l, aa_idx_upper_bound = self.get_trimers_right(motif_idx, aa_idx)
             for motif_trimer, wild_trimer, aa in l:
-                reg_exp_trimer = helper.align_aa_trimer(aa, motif_trimer)
-                if reg_exp_trimer != 'none':
-                    extension += reg_exp_trimer
-                    wild += wild_trimer
+                align_trimer = helper.align_aa_trimer(aa, motif_trimer)
+                if align_trimer != 'none':
+                    align_extend += align_trimer
+                    align_wild += wild_trimer
                 else:
                     return 'none'
-            return extension, wild, aa_upper_bound
-        except ExtensionOutOfRangeException, e:
+            return align_extend, align_wild, aa_idx_upper_bound
+        except ExtensionOutOfRangeException:
             return 'none'
 
     def get_trimers_right(self, motif_idx, aa_idx):
         """
-        generate a list of trimers for right extension. The list would have tuple of motif trimers, nt trimer, and aa.
-        The items in the tuple can be aligned in the method extend_right to see if we can match the motifs to the aa
-        codons. In case the extension out range the nt sequence, we throw an exception ExtensionOutOfRangeException
+        generate the list of trimers of the right extension. This is a  list of tuples: (motif trimer, wild trimer, aa)
+        The trimer of the tuple will be aligned by the method extend_right. We can notice that these trimers are aligned
+        to codons of aa. In case the extension out ranges the nt sequence, an exception ExtensionOutOfRangeException
+        is thrown
         :param motif_idx: start index in the motif sequence (the nail)
         :param aa_idx: start index in the aa sequence
         :return: list of tuples (motif_trimer, nt_trimer, aa)
         """
         l_m = [self.seq_motif[i:i + 3].ljust(3, 'N')
-               for i in range(motif_idx, len(self.seq_motif), 3)] # trimers of motif for right extension
-        l_n = []  # trimers of the nt sequence for the right extension
+               for i in range(motif_idx, len(self.seq_motif), 3)]  # trimers of motif for right extension
+        l_w = []  # trimers of the wild nt sequence for the right extension
         l_a = []  # aa acids for right extension
-        aa_upper_bound = None  # inclusive
+        aa_idx_upper_bound = None  # inclusive
         for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx, aa_idx + len(l_m))]:
-            if i_nt + 3 > self.len_nt:
+            if i_nt + 3 > self.len_seq_wild_nt:
                 raise ExtensionOutOfRangeException(i_nt)
             else:
-                l_n.append(self.seq_nt[i_nt:i_nt + 3])
-                l_a.append(self.seq_aa[i_aa])
-                aa_upper_bound = i_aa
-        if not aa_upper_bound:
+                l_w.append(self.seq_wild_nt[i_nt:i_nt + 3])
+                l_a.append(self.seq_wild_aa[i_aa])
+                aa_idx_upper_bound = i_aa
+        if not aa_idx_upper_bound:
             raise ExtensionOutOfRangeException(l_m)
-        return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_upper_bound
+        return [(m, n, a) for m, n, a in zip(l_m, l_w, l_a)], aa_idx_upper_bound  # here is the alignment
 
     def extend_left(self, motif_idx, aa_idx):
         """
-        ame description as extend_right, just this method is doing it for the left extension
-        :param motif_idx: motif_idx: start index of the motif sequence
-        :param aa_idx: aa_idx: the aa index in the sequence
-        :return: regular expression of the left extension
+        same description as extend_right, just this method is doing it for the left side
+        :param motif_idx: start index in the motif sequence
+        :param aa_idx: aa_idx: start index in the aa sequence
+        :return: a tuple: (regular expression of the right extension (intersection of the alignment of motif and aa)
+                            , corresponding alignment of the wild sequence, upper bound index of aa -inclusive)
         """
         try:
-            extension = ''
-            wild = ''
-            l, aa_lower_bound = self.get_trimers_left(motif_idx, aa_idx)
+            align_extend = ''
+            align_wild = ''
+            l, aa_idx_lower_bound = self.get_trimers_left(motif_idx, aa_idx)
             for motif_timer, wild_trimer, aa in l:
-                reg_exp_trimer = helper.align_aa_trimer(aa, motif_timer)
-                if reg_exp_trimer != 'none':
-                    extension = reg_exp_trimer + extension
-                    wild = wild_trimer + wild
+                align_trimer = helper.align_aa_trimer(aa, motif_timer)
+                if align_trimer != 'none':
+                    align_extend = align_trimer + align_extend
+                    align_wild = wild_trimer + align_wild
                 else:
                     return 'none'
-            return extension, wild, aa_lower_bound
-        except ExtensionOutOfRangeException, e:
+            return align_extend, align_wild, aa_idx_lower_bound
+        except ExtensionOutOfRangeException:
             return 'none'
 
     def get_trimers_left(self, motif_idx, aa_idx):
         """
-        same description as for get_trimers_right, but this method is doing it for the left extension
+        same description as for get_trimers_right, just this method is doing it for the left side
         :param motif_idx: start index in the motif sequence (the nail)
         :param aa_idx: start index in the aa sequence
         :return: list of tuples (motif_trimer, nt_trimer, aa)
         """
         l_m = [self.seq_motif[y - 3:y].rjust(3, 'N') if y - 3 >= 0 else self.seq_motif[0:y].rjust(3, 'N')
                for y in range(motif_idx, 0, - 3)]
-        l_n = []
+        l_w = []
         l_a = []
-        aa_lower_bound = None  # inclusive
+        aa_idx_lower_bound = None  # inclusive
         for i_aa, i_nt in [(i_aa, i_aa * 3)for i_aa in range(aa_idx - 1, aa_idx - len(l_m) - 1, -1)]:
             if i_nt < 0:
                 raise ExtensionOutOfRangeException(i_nt)
             else:
-                l_n.append(self.seq_nt[i_nt: i_nt + 3])
-                l_a.append(self.seq_aa[i_aa])
-                aa_lower_bound = i_aa
-        if not aa_lower_bound:
+                l_w.append(self.seq_wild_nt[i_nt: i_nt + 3])
+                l_a.append(self.seq_wild_aa[i_aa])
+                aa_idx_lower_bound = i_aa
+        if not aa_idx_lower_bound:
             raise ExtensionOutOfRangeException(l_m)
-        return [(m, n, a) for m, n, a in zip(l_m, l_n, l_a)], aa_lower_bound
+        return [(m, n, a) for m, n, a in zip(l_m, l_w, l_a)], aa_idx_lower_bound
 
-    def update_d_results(self, reg_exp_seq_optimized, wild_align, aa_lower_bound, aa_upper_bound):
+    def update_results(self, align_optimized, align_wild, aa_idx_lower_bound, aa_idx_upper_bound):
         """
-        aa
-        :param reg_exp_seq_optimized:
-        :param wild_align:
-        :param aa_lower_bound: inclusive
-        :param aa_upper_bound: inclusive
+        if the alignment corresponds to exact match - align_optimized, this method updates both dictionaries:
+        self.existent_motifs includes the existing motifs in the wild sequence, and self.motifs_to_integrate include
+        the motifs that can be integrated in the wild sequence. These two dictionaries are populated by results of the
+        following form: {'seq_motif':[(optimized alignment which is the intersection of the motif and aa, corresponding
+        wild alignment, (aa index lower bound - inclusive, aa index upper bound -inclusive)), ]}
+        :param align_optimized: the alignment of the intersection of the motif and aa
+        :param align_wild: corresponding alignment on the wild sequence
+        :param aa_idx_lower_bound: aa start index of the alignment - inclusive
+        :param aa_idx_upper_bound: aa end index of the alignment - inclusive
         :return:
         """
-        # TODO document res what does mean every elelment in the tuple
-        res = (reg_exp_seq_optimized, wild_align, (aa_lower_bound, aa_upper_bound)
-               , (aa_lower_bound * 3, aa_upper_bound * 3 + 3))
-        if re.match(reg_exp_seq_optimized, wild_align):
+        res = (align_optimized, align_wild, (aa_idx_lower_bound, aa_idx_upper_bound),
+               (aa_idx_lower_bound * 3, aa_idx_upper_bound * 3 + 3))
+        if re.match(align_optimized, align_wild):
             if self.seq_motif in self.existent_motifs.keys():
-                if not res in self.existent_motifs[self.seq_motif]:
+                if res not in self.existent_motifs[self.seq_motif]:
                     self.existent_motifs[self.seq_motif].append(res)
             else:
                 self.existent_motifs[self.seq_motif] = [res]
         else:
             if self.seq_motif in self.motifs_to_integrate.keys():
-                if not res in self.motifs_to_integrate[self.seq_motif]:
+                if res not in self.motifs_to_integrate[self.seq_motif]:
                     self.motifs_to_integrate[self.seq_motif].append(res)
             else:
                 self.motifs_to_integrate[self.seq_motif] = [res]
@@ -208,8 +203,8 @@ def run_with_one_motif():
 
 
 def run_with_multiple_motif():
-    with open('data/f8.orig.fasta', 'r') as f_seq_nt\
-            , open('data/liver_motifs.fasta') as f_motifs:
+    with open('data/f8.orig.fasta', 'r') as f_seq_nt,\
+            open('data/liver_motifs.fasta') as f_motifs:
         seq_nt = str(SeqIO.read(f_seq_nt, 'fasta').seq)
         l_motif = [str(record.seq) for record in SeqIO.parse(f_motifs, 'fasta')]
     b = BlastIUPAC(seq_nt)

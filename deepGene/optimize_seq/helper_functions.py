@@ -7,13 +7,9 @@ __version__ = '1.0.0'
 __author__ = 'Dhoha Abid'
 
 
-import dict_aa_codon as rt
-import encode_iupac_to_nt as iupac
+from dict_aa_codon import D_AA_CODON
+from dict_iupac_nt import D_IUPAC_NT
 from Bio.Seq import Seq
-
-
-D_IUPAC_NT = iupac.d_iupac_nt
-D_AA_CODON = rt.d_aa_codon
 
 
 def index_aa_seq(seq_aa):
@@ -34,6 +30,7 @@ def index_aa_seq(seq_aa):
 
 def attach_motif_to_aa_seq(seq_motif, seq_aa):
     """
+    The seed implementation
     attach the motif to the sequence. Attachment is based on the codons (aa) of the sequence and a trimer
     of the motif. Attach an index of the motif to the index of the sequence and save the results in a dictionary.
     :param seq_motif: motif sequence

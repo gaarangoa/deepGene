@@ -7,7 +7,7 @@ __author__ = 'Dhoha Abid'
 
 from json import dump
 
-d_aa_codon = {
+D_AA_CODON = {
     'M':[{0:{'A'}, 1:{'T'}, 2:{'G'}}]
     , 'F':[{0:{'T'}, 1: {'T'}, 2: {'T','C'}}]
     , 'L':[{0:{'T'}, 1: {'T'}, 2: {'A', 'G'}}, {0: {'C'}, 1: {'T'}, 2: {'A', 'C', 'G','T'}}]
@@ -34,9 +34,9 @@ d_aa_codon = {
 
 def dump_dict(f_name):
     with open(f_name, 'w') as f:
-        dump(d_aa_codon, f)
+        dump(D_AA_CODON, f)
 
 
 def get_dict():
-    return d_aa_codon
+    return D_AA_CODON
 
