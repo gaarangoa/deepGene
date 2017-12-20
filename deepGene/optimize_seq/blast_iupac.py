@@ -39,17 +39,12 @@ class BlastIUPAC:
         :param seq_aa: amino acid sequence (of type string)
         """
         self.seq_nt = seq_nt
-        self.seq_aa = self.translate_seq_nt(seq_nt)
+        self.seq_aa = helper.translate_nt_sequence(seq_nt)
         self.len_aa = len(self.seq_aa)
         self.len_nt = len(seq_nt)
         self.seq_motif = None
         self.res_motifs_exist = {}  # will contain the motifs that already exists in the nt sequence
         self.res_motif_optimize = {}  # ill contain the motifs that can optimize (match) the nt sequence
-
-    @staticmethod
-    def translate_seq_nt(seq_nt):
-        seq_nt = Seq(seq_nt)
-        return str(seq_nt.translate())
 
     def run_batch(self, l_motif):
         for m in l_motif:
@@ -185,6 +180,7 @@ class BlastIUPAC:
         :param aa_upper_bound: inclusive
         :return:
         """
+        # TODO document res what does mean every elelment in the tuple
         res = (reg_exp_seq_optimized, wild_align, (aa_lower_bound, aa_upper_bound)
                , (aa_lower_bound * 3, aa_upper_bound * 3 + 3))
         if re.match(reg_exp_seq_optimized, wild_align):
@@ -218,8 +214,6 @@ def run_with_multiple_motif():
     b = BlastIUPAC(seq_nt)
     b.run_batch(l_motif)
     print b.res_motif_optimize
-
-    pass
 
 
 if __name__ == '__main__':

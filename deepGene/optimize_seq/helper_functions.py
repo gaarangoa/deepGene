@@ -9,6 +9,8 @@ __author__ = 'Dhoha Abid'
 
 import reverse_translate as rt
 import encode_iupac_to_nt as iupac
+from Bio.Seq import Seq
+
 
 D_IUPAC_NT = iupac.d_dg_nt
 D_AA_CODON = rt.d_aa_nt
@@ -89,5 +91,10 @@ def transform_reg_exp_to_list(string):
         elif s != '[' and s != ']' and not flag:
             l.append(s)
     return l
+
+
+def translate_nt_sequence(seq_nt):
+        seq_nt = Seq(seq_nt)
+        return str(seq_nt.translate())
 
 
