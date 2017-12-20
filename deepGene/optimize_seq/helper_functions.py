@@ -6,7 +6,6 @@ __version__ = '1.0.0'
 __author__ = 'Dhoha Abid'
 
 
-
 from Bio.Seq import Seq
 
 
@@ -27,6 +26,11 @@ def index_aa_seq(seq_aa):
 
 
 def transform_reg_exp_to_list(string):
+    """
+    given a string that follow a regular expression annotation, this method transforms it to a list of character.
+    :param string: string of regular expression 'AT[GT]A'
+    :return: list of characters ['A', 'T', ['G', 'T'], 'A']
+    """
     l = []
     flag = False
     for s in string:
