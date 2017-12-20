@@ -3,8 +3,8 @@ __version__ = '1.1.0'
 __author__ = 'Dhoha Abid'
 
 from unittest import TestCase
-from blast_iupac import BlastIUPAC as Blast
-from blast_iupac import ExtensionOutOfRangeException
+from deepGene.optimize_seq.blast_iupac import BlastIUPAC as Blast
+from deepGene.optimize_seq.blast_iupac import ExtensionOutOfRangeException
 from Bio import SeqIO
 import unittest
 

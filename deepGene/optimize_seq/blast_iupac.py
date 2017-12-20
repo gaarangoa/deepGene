@@ -14,6 +14,8 @@ import re
 from Bio import SeqIO
 import sys
 import traceback
+from dict_aa_codon import D_AA_CODON
+from dict_iupac_nt import D_IUPAC_NT
 
 
 class ExtensionOutOfRangeException(Exception):
@@ -49,7 +51,7 @@ class BlastIUPAC:
         :return: update self.existent_motifs and motifs_to_integrate
         """
         self.seq_motif = seq_motif
-        d_motif_idx__aa_idx = helper.attach_motif_to_aa_seq(seq_motif, self.seq_wild_aa)
+        d_motif_idx__aa_idx = self.attach_motif_to_aa_seq()
         for motif_idx, l_aa_idx in d_motif_idx__aa_idx.items():
             for aa_idx in l_aa_idx:
                 try:
@@ -67,6 +69,26 @@ class BlastIUPAC:
                     traceback.print_exc()
                     sys.exit(1)
 
+    def attach_motif_to_aa_seq(self):
+        """
+        This is the seed implementation of blast: attach the motif to the sequence. Attachment is based on the codons
+        (aa) of the sequence and a trimer of the motif. Attach an index of the motif to the index of the sequence
+        and save the results in a dictionary.
+        :return: a dictionary where the keys are motif index and values are the indices of aa of the sequence
+        """
+        d_aa_idx = helper.index_aa_seq(self.seq_wild_aa)
+        d = {}
+        for motif_idx, motif_trimer in enumerate([self.seq_motif[i:i + 3] for i in range(len(self.seq_motif) - 2)]):
+            for aa, seq_idx in d_aa_idx.items():
+                for codon in D_AA_CODON[aa]:
+                    if (codon[0] & D_IUPAC_NT[motif_trimer[0]]) and (codon[1] & D_IUPAC_NT[motif_trimer[1]]) \
+                            and (codon[2] & D_IUPAC_NT[motif_trimer[2]]):
+                        if motif_idx not in d.keys():
+                            d[motif_idx] = seq_idx
+                        else:
+                            d[motif_idx] |= seq_idx
+        return d
+
     def extend_right(self, motif_idx, aa_idx):
         """
         extend the alignment to the right. get all the trimers of the motif starting from motif_idx, and corresponding
@@ -82,7 +104,7 @@ class BlastIUPAC:
             align_wild = ''
             l, aa_idx_upper_bound = self.get_trimers_right(motif_idx, aa_idx)
             for motif_trimer, wild_trimer, aa in l:
-                align_trimer = helper.align_aa_trimer(aa, motif_trimer)
+                align_trimer = self.align_aa_trimer(aa, motif_trimer)
                 if align_trimer != 'none':
                     align_extend += align_trimer
                     align_wild += wild_trimer
@@ -131,7 +153,7 @@ class BlastIUPAC:
             align_wild = ''
             l, aa_idx_lower_bound = self.get_trimers_left(motif_idx, aa_idx)
             for motif_timer, wild_trimer, aa in l:
-                align_trimer = helper.align_aa_trimer(aa, motif_timer)
+                align_trimer = self.align_aa_trimer(aa, motif_timer)
                 if align_trimer != 'none':
                     align_extend = align_trimer + align_extend
                     align_wild = wild_trimer + align_wild
@@ -163,6 +185,28 @@ class BlastIUPAC:
         if not aa_idx_lower_bound:
             raise ExtensionOutOfRangeException(l_m)
         return [(m, n, a) for m, n, a in zip(l_m, l_w, l_a)], aa_idx_lower_bound
+
+    @staticmethod
+    def align_aa_trimer(aa, trimer):
+        """
+        align the aa (codon) to a trimer. Only exact match is allowed. If the aa and the trimer cannot be aligned,
+        we return 'none'. Otherwise a regular expression of the alignment is returned. Alignment is based on the
+        reverse translation, so a nucleotide (iupac) can be aligned to a set of nucleotides - depending on he codon.
+        This alignment is, in other words, the intersection of the codon of aa and the motif trimer
+        :param aa: amino acid
+        :param trimer: should be the motif trimer - the iupac annotation is accepted
+        :return: regular expression of the trimer resultant from the intersection of the codon and motif
+        """
+        for nt in D_AA_CODON[aa]:
+            nt1 = nt[0] & D_IUPAC_NT[trimer[0]]
+            nt2 = nt[1] & D_IUPAC_NT[trimer[1]]
+            nt3 = nt[2] & D_IUPAC_NT[trimer[2]]
+            if nt1 and nt2 and nt3:
+                reg_trimer = reduce(lambda x, y: x + y, [reduce(lambda x, y: x + y, i) if len(i) == 1
+                                                         else '[' + reduce(lambda x, y: x + y, i) + ']'
+                                                         for i in [nt1, nt2, nt3]])
+                return reg_trimer
+        return 'none'
 
     def update_results(self, align_optimized, align_wild, aa_idx_lower_bound, aa_idx_upper_bound):
         """
