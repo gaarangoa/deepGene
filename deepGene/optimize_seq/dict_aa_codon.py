@@ -1,6 +1,13 @@
-import json
+"""
+d_aa_condon depicts the reverse translation of the aa. This dictionary has keys of aa, and values possible codons
+"""
 
-d_aa_nt = { #inverse translation (what an amino acid can be coded into a nt sequence codon)
+__version__ = '1.1.0'
+__author__ = 'Dhoha Abid'
+
+from json import dump
+
+d_aa_codon = {
     'M':[{0:{'A'}, 1:{'T'}, 2:{'G'}}]
     , 'F':[{0:{'T'}, 1: {'T'}, 2: {'T','C'}}]
     , 'L':[{0:{'T'}, 1: {'T'}, 2: {'A', 'G'}}, {0: {'C'}, 1: {'T'}, 2: {'A', 'C', 'G','T'}}]
@@ -24,12 +31,12 @@ d_aa_nt = { #inverse translation (what an amino acid can be coded into a nt sequ
     , '*':[{0:{'T'}, 1: {'A'}, 2: {'A', 'G'}}, {0: {'T'}, 1: {'G'}, 2: {'A'}}]
 }
 
-@staticmethod
-def dump_dict(file_name):
-    with open(file_name, 'w') as f:
-        json.dump(d_aa_nt, f)
+
+def dump_dict(f_name):
+    with open(f_name, 'w') as f:
+        dump(d_aa_codon, f)
 
 
 def get_dict():
-    return d_aa_nt
+    return d_aa_codon
 

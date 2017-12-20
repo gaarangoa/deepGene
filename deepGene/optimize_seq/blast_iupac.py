@@ -1,14 +1,15 @@
 """
-finds possible motifs
-algo similat to blast
-finds the spots that can be converted to motifs
-
+Implementation of blast that supports the iupac notations of nucleotides. The ultimate results of this class
+when fed a list of motifs is to output two dictionaries existent_motifs that contains the motifs that already
+exist in the nucleotide sequence, and motifs_to_integrate that has the motifs that have the motifs that can
+optimize the nucleotide sequence
 """
 
 __version__ = '1.1.0'
 __author__ = 'Dhoha Abid'
 
-import reverse_translate as rt
+from dict_aa_codon import d_aa_codon
+import dict_aa_codon as rt
 import encode_iupac_to_nt as iupac
 import helper_functions as helper
 import re
@@ -19,8 +20,8 @@ from functools import reduce
 from Bio.Seq import Seq
 
 
-D_IUPAC_NT = iupac.d_dg_nt
-D_AA_CODON = rt.d_aa_nt
+D_IUPAC_NT = iupac.d_iupac_nt
+D_AA_CODON = d_aa_codon
 
 
 class ExtensionOutOfRangeException(Exception):
@@ -43,8 +44,8 @@ class BlastIUPAC:
         self.len_aa = len(self.seq_aa)
         self.len_nt = len(seq_nt)
         self.seq_motif = None
-        self.res_motifs_exist = {}  # will contain the motifs that already exists in the nt sequence
-        self.res_motif_optimize = {}  # ill contain the motifs that can optimize (match) the nt sequence
+        self.existent_motifs = {}  # will contain the motifs that already exists in the nt sequence
+        self.motifs_to_integrate = {}  # will contain the motifs that can optimize the nt sequence
 
     def run_batch(self, l_motif):
         for m in l_motif:
@@ -184,17 +185,17 @@ class BlastIUPAC:
         res = (reg_exp_seq_optimized, wild_align, (aa_lower_bound, aa_upper_bound)
                , (aa_lower_bound * 3, aa_upper_bound * 3 + 3))
         if re.match(reg_exp_seq_optimized, wild_align):
-            if self.seq_motif in self.res_motifs_exist.keys():
-                if not res in self.res_motifs_exist[self.seq_motif]:
-                    self.res_motifs_exist[self.seq_motif].append(res)
+            if self.seq_motif in self.existent_motifs.keys():
+                if not res in self.existent_motifs[self.seq_motif]:
+                    self.existent_motifs[self.seq_motif].append(res)
             else:
-                self.res_motifs_exist[self.seq_motif] = [res]
+                self.existent_motifs[self.seq_motif] = [res]
         else:
-            if self.seq_motif in self.res_motif_optimize.keys():
-                if not res in self.res_motif_optimize[self.seq_motif]:
-                    self.res_motif_optimize[self.seq_motif].append(res)
+            if self.seq_motif in self.motifs_to_integrate.keys():
+                if not res in self.motifs_to_integrate[self.seq_motif]:
+                    self.motifs_to_integrate[self.seq_motif].append(res)
             else:
-                self.res_motif_optimize[self.seq_motif] = [res]
+                self.motifs_to_integrate[self.seq_motif] = [res]
 
 
 def run_with_one_motif():
@@ -203,7 +204,7 @@ def run_with_one_motif():
         seq_nt = str(SeqIO.read(f_seq_nt, 'fasta').seq)
     b = BlastIUPAC(seq_nt)
     b.run(seq_motif)
-    print b.res_motif_optimize
+    print b.motifs_to_integrate
 
 
 def run_with_multiple_motif():
@@ -213,7 +214,7 @@ def run_with_multiple_motif():
         l_motif = [str(record.seq) for record in SeqIO.parse(f_motifs, 'fasta')]
     b = BlastIUPAC(seq_nt)
     b.run_batch(l_motif)
-    print b.res_motif_optimize
+    print b.motifs_to_integrate
 
 
 if __name__ == '__main__':

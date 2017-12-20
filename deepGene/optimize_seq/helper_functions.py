@@ -7,13 +7,13 @@ __version__ = '1.0.0'
 __author__ = 'Dhoha Abid'
 
 
-import reverse_translate as rt
+import dict_aa_codon as rt
 import encode_iupac_to_nt as iupac
 from Bio.Seq import Seq
 
 
-D_IUPAC_NT = iupac.d_dg_nt
-D_AA_CODON = rt.d_aa_nt
+D_IUPAC_NT = iupac.d_iupac_nt
+D_AA_CODON = rt.d_aa_codon
 
 
 def index_aa_seq(seq_aa):

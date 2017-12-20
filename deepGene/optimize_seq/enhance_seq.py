@@ -1,5 +1,5 @@
 import encode_iupac_to_nt as iupac
-import reverse_translate as rv
+import dict_aa_codon as rv
 import blast_iupac
 from Bio.Seq import Seq
 from Bio.Alphabet import IUPAC

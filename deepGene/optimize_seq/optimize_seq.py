@@ -91,7 +91,7 @@ def run_with_random_motifs():
     b = BlastIUPAC(seq_nt)
     b.run_batch(l_motif)
     o = OptimizeSeq(seq_nt)
-    o.run(b.res_motif_optimize, 'test')
+    o.run(b.motifs_to_integrate, 'test')
     # print len(b.res_motif_optimize)
     # sample(b.res_motif_optimize, 15)
     # TODO send the name of the file
