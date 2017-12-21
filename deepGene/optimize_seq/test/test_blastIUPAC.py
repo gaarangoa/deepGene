@@ -39,10 +39,10 @@ class TestBlastIUPAC(TestCase):
         self.assertEqual(('GA[AG]TT[AG]TC[ACTG]', 'GAGCTCTCC', 5), self.blast.extend_right(motif_idx=5, aa_idx=3))
 
     def test_get_trimers_left(self):
-        # self.blast.seq_motif = 'CAGATC'
-        # self.assertEqual(([('CAG', 'CAA', 'Q')], 1), self.blast.get_trimers_left(motif_idx=3, aa_idx=2))
-        # self.blast.seq_motif = 'RATGCAG'
-        # self.assertRaises(ExtensionOutOfRangeException, self.blast.get_trimers_left, 4, 1)
+        self.blast.seq_motif = 'CAGATC'
+        self.assertEqual(([('CAG', 'CAA', 'Q')], 1), self.blast.get_trimers_left(motif_idx=3, aa_idx=2))
+        self.blast.seq_motif = 'RATGCAG'
+        self.assertRaises(ExtensionOutOfRangeException, self.blast.get_trimers_left, 4, 1)
         self.blast.seq_motif = 'NNAGATC'
         self.assertEqual(([('NAG', 'CAA', 'Q'), ('NNN', 'ATG', 'M')], 0),
                          self.blast.get_trimers_left(motif_idx=4, aa_idx=2))
