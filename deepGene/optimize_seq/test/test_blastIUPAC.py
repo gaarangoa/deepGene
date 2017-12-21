@@ -3,9 +3,7 @@ __version__ = '1.1.0'
 __author__ = 'Dhoha Abid'
 
 from unittest import TestCase
-from Bio import SeqIO
 import unittest
-import sys, os
 from deepGene.optimize_seq.blast_iupac import BlastIUPAC as Blast
 from deepGene.optimize_seq.blast_iupac import ExtensionOutOfRangeException
 
@@ -14,10 +12,6 @@ class TestBlastIUPAC(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestBlastIUPAC, self).__init__(*args, **kwargs)
         self.blast = Blast('ATGCAAATAGAGCTCTCCACC')
-        # sys.path.insert(0, os.path.dirname('/home/dhoha/Dropbox/deepGene/deepGene/optimize_seq'))
-
-    # def setUp(self):
-    #     sys.path.insert(0, "/home/dhoha/Dropbox/deepGene/deepGene/optimize_seq/test")
 
     def test_match_aa_trimer(self):
         self.assertEqual('GT[TG]', Blast.align_aa_trimer(aa='V', trimer='GTK'))
