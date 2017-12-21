@@ -136,7 +136,7 @@ class BlastIUPAC:
                 l_w.append(self.seq_wild_nt[i_nt:i_nt + 3])
                 l_a.append(self.seq_wild_aa[i_aa])
                 aa_idx_upper_bound = i_aa
-        if not aa_idx_upper_bound:
+        if aa_idx_upper_bound is None:
             raise ExtensionOutOfRangeException(l_m)
         return [(m, n, a) for m, n, a in zip(l_m, l_w, l_a)], aa_idx_upper_bound  # here is the alignment
 
@@ -182,7 +182,7 @@ class BlastIUPAC:
                 l_w.append(self.seq_wild_nt[i_nt: i_nt + 3])
                 l_a.append(self.seq_wild_aa[i_aa])
                 aa_idx_lower_bound = i_aa
-        if not aa_idx_lower_bound:
+        if aa_idx_lower_bound is None:
             raise ExtensionOutOfRangeException(l_m)
         return [(m, n, a) for m, n, a in zip(l_m, l_w, l_a)], aa_idx_lower_bound
 
