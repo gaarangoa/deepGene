@@ -22,6 +22,8 @@ from Bio import SeqIO
 from functools import partial
 from StringIO import StringIO
 
+from tqdm import tqdm as bar
+
 class Train():
     def __init__(self, args):
         self.info = ''
@@ -34,18 +36,21 @@ class Train():
             "embedding_size": 500,
             "output": 2
         }
-        self.regression_params = {
-
-        }
     
-    def make_dataset(self):
+    def run(self):
+        # make the dataset
         labels_raw = {i.strip().split()[0]:i.strip().split()[1] for i in open(self.input_genes_labels)}
         docs = []
-        for record in SeqIO.parse(self.input_genes_fasta, "fasta"):
-            docs.append(
-                " ".join([l for l in iter(partial(StringIO(str(record.seq)).read, 3), '')])
-            )
-            labels.append( float(labels_raw[record.id]) )
+        labels = []
+        data = SeqIO.parse(self.input_genes_fasta, "fasta")
+        for record in bar(data):
+            try:
+                labels.append( float(labels_raw[record.id]) )
+                docs.append(
+                    " ".join([l for l in iter(partial(StringIO(str(record.seq)).read, 3), '')])
+                )
+            except Exception as e:
+                pass
         
         labels = np.array(labels)
         
@@ -55,21 +60,21 @@ class Train():
 
         # Build model
         text_model_input = Input(shape = (self.classifier_params['max_length'],), dtype="int32", name = 'text_model_input')
-        text_model = Embedding(input_dim = self.classifier_params['vocab_size'], mask_zero=True, output_dim = self.classifier_params['embedding_size'], input_length = self.max_length, name="embedding" )(text_model_input)
+        text_model = Embedding(input_dim = self.classifier_params['vocab_size'], mask_zero=True, output_dim = self.classifier_params['embedding_size'], input_length = self.classifier_params['max_length'], name="embedding" )(text_model_input)
         text_model = LSTM(512, name = "text-lstm-1", return_sequences=True)(text_model)
         text_model_output = LSTM(256, name = 'text-lstm-2')(text_model)
 
         # Merge model
-        merged_model = concatenate([text_model_output], axis=1)
+        merged_model = concatenate([text_model_output, text_model_output], axis=1)
         merged_model = Dense(1200, activation="relu")(merged_model)
         merged_model = Dropout(0.5)(merged_model)
         merged_model = Dense(640, activation="relu")(merged_model)
         merged_model = Dropout(0.5)(merged_model)
         merged_model = Dense(420, activation="relu")(merged_model)
-        merged_model_output = Dense(1, activation = "softmax", name = 'merged_model_output')(merged_model)
+        merged_model_output = Dense(1, name = 'merged_model_output')(merged_model)
 
         model = Model(inputs = [text_model_input], outputs = [merged_model_output])
-        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['acc'])
+        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
         print(model.summary())
 
         try:
@@ -82,11 +87,17 @@ class Train():
         model.fit([padded_docs], [labels], batch_size=128, epochs=100)
 
         # save model
-        model.save('model.hdf5')
+        model.save(self.output_model+'.hdf5')
 
 
 class test():
     def __init__(self):
-        self.input = ''
-        self.output = 
-        self.labels = 
+        self.input = '../data/gene_sequence.fasta'
+        self.output = '../data/model'
+        self.labels = '../data/regressionLabels'
+
+args = test()
+train = Train(args)
+train.run()
+
+
