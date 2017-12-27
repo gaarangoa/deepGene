@@ -6,8 +6,9 @@ __dev__='gustavo arango'
 
 
 import json
-from keras.preprocessing.text import one_hot
+
 from keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.text import one_hot
 from keras.models import Sequential
 from keras.layers import Activation, Dense, Flatten, Dropout, LSTM, concatenate, Input, Reshape
 from keras.layers.embeddings import Embedding
