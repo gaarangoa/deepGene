@@ -90,13 +90,13 @@ class Train():
         model.save(self.output_model+'.hdf5')
 
 
-class test():
+class Test():
     def __init__(self):
         self.input = '../data/gene_sequence.fasta'
         self.output = '../data/model'
         self.labels = '../data/regressionLabels'
 
-args = test()
+args = Test()
 train = Train(args)
 train.run()
 
