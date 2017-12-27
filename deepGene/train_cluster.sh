@@ -12,6 +12,6 @@ export PYTHONNOUSERSITE=True
 source /work/newriver/gustavo1/deepLearning/bitPredEnv/bin/activate
 
 cd /work/newriver/gustavo1/deepLearning/deepGene/deepGene/
-module load cuda gcc/5.4.0 theano
+module load gcc/5.4.0 theano
 
 python DLModel1.py
