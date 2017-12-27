@@ -3,7 +3,7 @@
 #SBATCH -p normal_q
 #SBATCH -N 1
 #SBATCH -t 20:10:00
-#SBATCH --mem=800G
+#SBATCH --mem=200G
 #SBATCH --gres=gpu:pascal:1
 
 echo "Allocated GPU with ID $CUDA_VISIBLE_DEVICES"
